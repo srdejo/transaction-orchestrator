@@ -1,0 +1,25 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(client, "Client")
+
+System_Boundary(system, "Transaction Orchestrator") {
+
+Container(api, "REST API", "Spring Boot", "Exposes endpoints")
+Container(app, "Application Layer", "Java", "Use cases")
+Container(domain, "Domain", "Java", "Business logic")
+Container(db, "Database", "PostgreSQL", "Stores transactions")
+Container(redis, "Redis", "Cache", "Idempotency")
+
+}
+
+System_Ext(provider, "Payment Provider")
+
+Rel(client, api, "HTTP")
+Rel(api, app, "Calls")
+Rel(app, domain, "Uses")
+Rel(app, db, "Reads/Writes")
+Rel(app, redis, "Idempotency")
+Rel(app, provider, "Processes payments")
+
+@enduml

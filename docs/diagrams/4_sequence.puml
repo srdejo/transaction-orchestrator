@@ -1,0 +1,31 @@
+@startuml
+actor Client
+
+participant "TransactionController" as C
+participant "TransactionService" as S
+participant "IdempotencyService" as I
+participant "ProviderAdapter" as P
+participant "Payment Provider" as Ext
+
+Client -> C : POST /transactions
+C -> S : createTransaction()
+
+S -> I : checkKey()
+
+alt key exists
+    I --> S : cached response
+    S --> C : return cached
+else new request
+    I --> S : OK
+
+    S -> P : processPayment()
+    P -> Ext : call provider API
+    Ext --> P : response
+
+    P --> S : result
+    S -> I : store response
+
+    S --> C : return response
+end
+
+@enduml
