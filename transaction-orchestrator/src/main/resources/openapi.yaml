@@ -1,0 +1,309 @@
+openapi: 3.0.3
+info:
+  title: Transaction Orchestrator API
+  description: API for transaction orchestration using hexagonal architecture
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+
+tags:
+  - name: Transactions
+  - name: Webhooks
+
+paths:
+
+  /transactions:
+    post:
+      tags:
+        - Transactions
+      summary: Create a new transaction
+      operationId: createTransaction
+      parameters:
+        - name: x-idempotency-key
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: x-correlation-id
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponseWrapper'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseWrapper'
+
+  /transactions/{transaction_id}:
+    get:
+      tags:
+        - Transactions
+      summary: Get transaction by ID
+      operationId: getTransaction
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: x-correlation-id
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponseWrapper'
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseWrapper'
+
+  /webhooks/providers/{provider}:
+    post:
+      tags:
+        - Webhooks
+      summary: Receive transaction status update from payment provider
+      operationId: handleProviderWebhook
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "mock"
+        - name: x-signature
+          in: header
+          required: false
+          schema:
+            type: string
+            description: Signature for webhook validation
+        - name: x-correlation-id
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderWebhookRequest'
+      responses:
+        '200':
+          description: Webhook processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericAckResponse'
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseWrapper'
+
+components:
+
+  schemas:
+
+    # =========================
+    # REQUESTS
+    # =========================
+    CreateTransactionRequest:
+      type: object
+      required:
+        - client_transaction_id
+        - amount
+        - currency
+        - country
+        - payment_method_id
+        - webhook_url
+        - return_url
+        - customer
+      properties:
+        client_transaction_id:
+          type: string
+          example: "txn_123456"
+        amount:
+          type: integer
+          description: Amount in cents
+          example: 10000
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          example: "USD"
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          example: "US"
+        payment_method_id:
+          type: string
+          example: "CARD"
+        webhook_url:
+          type: string
+          format: uri
+        return_url:
+          type: string
+          format: uri
+        description:
+          type: string
+        expiration_time:
+          type: integer
+          description: Expiration time in seconds
+        customer:
+          $ref: '#/components/schemas/Customer'
+
+    Customer:
+      type: object
+      required:
+        - document_type
+        - document_number
+        - phone_code
+        - phone_number
+        - email
+        - first_name
+        - last_name
+      properties:
+        document_type:
+          type: string
+          example: "CC"
+        document_number:
+          type: string
+          example: "123456789"
+        phone_code:
+          type: string
+          example: "57"
+        phone_number:
+          type: string
+          example: "3001234567"
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        second_name:
+          type: string
+        last_name:
+          type: string
+        second_last_name:
+          type: string
+
+    ProviderWebhookRequest:
+      type: object
+      required:
+        - transaction_id
+        - status
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+        provider_transaction_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/TransactionStatus'
+        message:
+          type: string
+        processed_at:
+          type: string
+          format: date-time
+
+    # =========================
+    # RESPONSES
+    # =========================
+    TransactionResponseWrapper:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "000"
+        message:
+          type: string
+          example: "Successful operation"
+        data:
+          $ref: '#/components/schemas/TransactionData'
+
+    ErrorResponseWrapper:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "1001"
+        message:
+          type: string
+          example: "Validation error"
+        data:
+          nullable: true
+
+    GenericAckResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "000"
+        message:
+          type: string
+          example: "Webhook received"
+
+    # =========================
+    # DATA
+    # =========================
+    TransactionData:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+        client_transaction_id:
+          type: string
+        payment_method_id:
+          type: string
+        amount:
+          type: integer
+        currency:
+          type: string
+        country:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/TransactionStatus'
+        created_at:
+          type: string
+          format: date-time
+
+    # =========================
+    # ENUMS
+    # =========================
+    TransactionStatus:
+      type: string
+      enum:
+        - PENDING
+        - PROCESSING
+        - SUCCESS
+        - FAILED
