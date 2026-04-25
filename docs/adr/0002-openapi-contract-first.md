@@ -13,7 +13,7 @@ Usar **OpenAPI 3.0** como fuente única de verdad y generar código automáticam
 
 ## Flow
 
-```id="g2l9bk"
+```
 openapi.yaml → generate → interfaces/DTOs → implementación
 ```
 

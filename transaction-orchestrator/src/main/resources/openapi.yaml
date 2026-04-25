@@ -141,7 +141,7 @@ components:
           example: "US"
         payment_method_id:
           type: string
-          example: "CARD"
+          example: "89132e2b-086d-4962-9b5a-7bb4607b2005"
         webhook_url:
           type: string
           format: uri
