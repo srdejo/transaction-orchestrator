@@ -9,7 +9,6 @@ servers:
 
 tags:
   - name: Transactions
-  - name: Webhooks
 
 paths:
 
@@ -19,17 +18,6 @@ paths:
         - Transactions
       summary: Create a new transaction
       operationId: createTransaction
-      parameters:
-        - name: x-idempotency-key
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: x-correlation-id
-          in: header
-          required: false
-          schema:
-            type: string
       requestBody:
         required: true
         content:
@@ -63,11 +51,6 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: x-correlation-id
-          in: header
-          required: false
-          schema:
-            type: string
       responses:
         '200':
           description: Transaction found
@@ -81,50 +64,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseWrapper'
-
-  /webhooks/providers/{provider}:
-    post:
+    patch:
       tags:
-        - Webhooks
-      summary: Receive transaction status update from payment provider
-      operationId: handleProviderWebhook
+        - Transactions
+      summary: Update transaction status
+      operationId: updateTransaction
       parameters:
-        - name: provider
+        - name: transaction_id
           in: path
           required: true
           schema:
             type: string
-            example: "mock"
-        - name: x-signature
-          in: header
-          required: false
-          schema:
-            type: string
-            description: Signature for webhook validation
-        - name: x-correlation-id
-          in: header
-          required: false
-          schema:
-            type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProviderWebhookRequest'
+              $ref: '#/components/schemas/UpdateTransactionRequest'
       responses:
         '200':
-          description: Webhook processed successfully
+          description: Transaction updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericAckResponse'
+                $ref: '#/components/schemas/TransactionResponseWrapper'
         '400':
           description: Invalid payload
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseWrapper'
+        '404':
+          description: Transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseWrapper'
+
 
 components:
 
@@ -214,7 +191,7 @@ components:
         second_last_name:
           type: string
 
-    ProviderWebhookRequest:
+    UpdateTransactionRequest:
       type: object
       required:
         - transaction_id
@@ -260,7 +237,7 @@ components:
         data:
           nullable: true
 
-    GenericAckResponse:
+    GenericResponse:
       type: object
       properties:
         code:

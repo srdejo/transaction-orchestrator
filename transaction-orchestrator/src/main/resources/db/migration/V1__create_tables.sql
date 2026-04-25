@@ -52,9 +52,10 @@ CREATE TABLE customers (
 -- =========================
 CREATE TYPE transaction_status AS ENUM (
     'PENDING',
-    'APPROVED',
-    'DECLINED',
-    'FAILED'
+    'PROCESSING',
+    'COMPLETED',
+    'FAILED',
+    'CANCELLED'
 );
 
 -- =========================
@@ -63,7 +64,8 @@ CREATE TYPE transaction_status AS ENUM (
 CREATE TABLE transactions (
     id UUID PRIMARY KEY,
 
-    customer_external_id VARCHAR(100) NOT NULL,
+    customer_transaction_id VARCHAR(100) NOT NULL,
+    customer_id UUID NOT NULL,
 
     amount_cents BIGINT NOT NULL CHECK (amount_cents >= 0),
 
@@ -84,6 +86,10 @@ CREATE TABLE transactions (
     processed_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
+    CONSTRAINT fk_customer
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(id),
+
     CONSTRAINT fk_currency
         FOREIGN KEY (currency_code)
         REFERENCES currencies(currency_code),
@@ -97,9 +103,9 @@ CREATE TABLE transactions (
         REFERENCES payment_methods(id)
 );
 
-CREATE UNIQUE INDEX ux_transactions_customer_external_id
-ON transactions(customer_external_id);
+CREATE UNIQUE INDEX ux_transactions_customer_transaction_id
+ON transactions(customer_transaction_id);
 
-CREATE INDEX idx_transactions_customer ON transactions(customer_external_id);
+CREATE INDEX idx_transactions_customer ON transactions(customer_id);
 CREATE INDEX idx_transactions_status ON transactions(status);
 CREATE INDEX idx_transactions_created_at ON transactions(created_at);
