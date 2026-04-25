@@ -3,6 +3,8 @@ services:
   postgres:
     image: postgres:15
     container_name: transaction-postgres
+    env_file:
+      - ./.env
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-transactions}
       POSTGRES_USER: ${POSTGRES_USER:-user}
@@ -12,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user} -d ${POSTGRES_DB:-transactions}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,6 +26,8 @@ services:
       context: ./transaction-orchestrator
       dockerfile: Dockerfile
     container_name: transaction-orchestrator-app
+    env_file:
+      - ./.env
     ports:
       - "${SERVER_PORT:-8080}:8080"
     environment:
