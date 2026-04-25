@@ -1,5 +1,5 @@
 package com.tumipay.transaction_orchestrator.domain.model.valueobject;
 
-public class Money {
-    // TODO: Implement Money value object
-}
+import java.math.BigDecimal;
+
+public record Money(BigDecimal amount, Currency currency) {}

@@ -1,3 +1,5 @@
 package com.tumipay.transaction_orchestrator.domain.model.valueobject;
 
-public record CountryCode(String value) {}
+public enum DocumentType {
+    CC, CE, NIT, PASSPORT
+}

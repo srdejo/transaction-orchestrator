@@ -4,5 +4,5 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class BeanConfig {
-    // TODO: Implement bean configuration
+    // manual bean definitions if needed
 }
