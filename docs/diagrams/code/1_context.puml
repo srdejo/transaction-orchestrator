@@ -1,0 +1,12 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(client, "Client")
+System(system, "Transaction Orchestrator")
+
+System_Ext(provider, "Payment Provider")
+
+Rel(client, system, "Creates transactions")
+Rel(system, provider, "Processes payments")
+
+@enduml

@@ -1,0 +1,25 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(api, "Transaction Orchestrator") {
+
+Component(controller, "TransactionController", "REST", "Receives requests")
+Component(service, "TransactionService", "Application", "Orchestrates flow")
+Component(strategy, "PaymentStrategy", "Domain", "Selects provider")
+Component(factory, "ProviderFactory", "Application", "Creates provider instances")
+
+Component(providerAdapter, "ProviderAdapter", "Adapter", "Calls external APIs")
+Component(idempotency, "IdempotencyService", "Service", "Handles idempotency")
+
+}
+
+System_Ext(provider, "Payment Provider")
+
+Rel(controller, service, "Calls")
+Rel(service, idempotency, "Checks key")
+Rel(service, strategy, "Selects provider")
+Rel(strategy, factory, "Creates provider")
+Rel(factory, providerAdapter, "Returns adapter")
+Rel(providerAdapter, provider, "HTTP")
+
+@enduml
