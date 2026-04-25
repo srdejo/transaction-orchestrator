@@ -7,29 +7,28 @@ Accepted
 Evitar transacciones duplicadas por reintentos (timeouts, retries, gateways). Se requiere baja latencia, control de concurrencia y expiración automática.
 
 ## Decision
-Usar Redis con llave provista por el cliente (`X-Idempotency-Key`) y estados:
+Usar Redis como capa de idempotencia de corto plazo, utilizando el identificador único provisto en el payload (`external_custom_id`) como llave, manejando los estados:
 - IN_PROGRESS
 - COMPLETED
 
-Se valida además un `request_hash`.
+(La integridad a largo plazo se garantiza mediante un índice único en la BD sobre `customer_transaction_id`).
 
 ## Flow
-1. Buscar key en Redis
-2. Si no existe:
+1. Extraer `external_custom_id` de la petición.
+2. Buscar la llave en Redis.
+3. Si no existe:
    - SET NX (IN_PROGRESS)
-   - Procesar
+   - Procesar la transacción
    - Guardar respuesta (COMPLETED)
-3. Si existe:
-   - Hash distinto → error
-   - COMPLETED → respuesta cacheada
-   - IN_PROGRESS → 409 / 202
+4. Si existe:
+   - COMPLETED → devolver respuesta cacheada
+   - IN_PROGRESS → devolver HTTP 409 Conflict
 
 ## Redis Model
-Key: `idempotency:{key}`
+Key: `idempotency:tx:{external_custom_id}`
 
 Value:
 {
-  request_hash,
   status,
   response
 }
