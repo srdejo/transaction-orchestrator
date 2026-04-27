@@ -9,10 +9,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ReferenceDataPersistenceAdapter Tests")
@@ -30,7 +32,7 @@ class ReferenceDataPersistenceAdapterTest {
         adapter = new ReferenceDataPersistenceAdapter(cacheLoader);
         lenient().when(cacheLoader.getValidCountries()).thenReturn(new java.util.HashSet<>(java.util.Arrays.asList("CO", "US", "MX")));
         lenient().when(cacheLoader.getValidCurrencies()).thenReturn(new java.util.HashSet<>(java.util.Arrays.asList("USD", "COP", "MXN")));
-        lenient().when(cacheLoader.getValidPaymentMethods()).thenReturn(new java.util.HashSet<>(java.util.Arrays.asList(pmId)));
+        lenient().when(cacheLoader.getValidPaymentMethods()).thenReturn(new java.util.HashSet<>(Collections.singletonList(pmId)));
     }
 
     @Test
@@ -88,5 +90,28 @@ class ReferenceDataPersistenceAdapterTest {
     @DisplayName("Given invalid paymentMethodId, when isValidPaymentMethod, then returns false")
     void givenInvalidPaymentMethodId_whenIsValidPaymentMethod_thenReturnsFalse() {
         assertThat(adapter.isValidPaymentMethod(UUID.randomUUID().toString())).isFalse();
+    }
+
+    @Test
+    @DisplayName("Given null paymentMethodId, when isCardPaymentMethod, then returns false")
+    void givenNullPaymentMethod_whenIsCardPaymentMethod_thenReturnsFalse() {
+        assertThat(adapter.isCardPaymentMethod(null)).isFalse();
+    }
+
+    @Test
+    @DisplayName("Given CARD paymentMethodId, when isCardPaymentMethod, then returns true")
+    void givenCardPaymentMethodId_whenIsCardPaymentMethod_thenReturnsTrue() {
+        String cardId = UUID.randomUUID().toString();
+        when(cacheLoader.getCardPaymentMethodId()).thenReturn(cardId);
+        assertThat(adapter.isCardPaymentMethod(cardId)).isTrue();
+    }
+
+    @Test
+    @DisplayName("Given non-CARD paymentMethodId, when isCardPaymentMethod, then returns false")
+    void givenNonCardPaymentMethodId_whenIsCardPaymentMethod_thenReturnsFalse() {
+        String cardId = UUID.randomUUID().toString();
+        String otherId = UUID.randomUUID().toString();
+        when(cacheLoader.getCardPaymentMethodId()).thenReturn(cardId);
+        assertThat(adapter.isCardPaymentMethod(otherId)).isFalse();
     }
 }

@@ -2,9 +2,10 @@ package com.tumipay.transaction_orchestrator.infrastructure.adapters.in.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.tumipay.transaction_orchestrator.api.model.TransactionData;
+import com.tumipay.transaction_orchestrator.api.model.TransactionResponseWrapper;
 import com.tumipay.transaction_orchestrator.application.mapper.TransactionMapper;
 import com.tumipay.transaction_orchestrator.application.ports.in.CreateTransactionUseCase;
-import com.tumipay.transaction_orchestrator.application.ports.in.GetTransactionUseCase;
 import com.tumipay.transaction_orchestrator.application.ports.in.GetTransactionUseCase;
 import com.tumipay.transaction_orchestrator.domain.exception.BusinessException;
 import com.tumipay.transaction_orchestrator.domain.exception.ErrorCode;
@@ -35,11 +36,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TransactionController.class)
 @Import({GlobalExceptionHandler.class, ValidationErrorMapper.class})
@@ -59,12 +62,13 @@ class TransactionControllerTest {
     private ObjectMapper objectMapper;
     private Transaction sampleTransaction;
     private String sampleTxId;
-    private com.tumipay.transaction_orchestrator.api.model.TransactionResponseWrapper sampleResponse;
+    private TransactionResponseWrapper sampleResponse;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.registerModule(new org.openapitools.jackson.nullable.JsonNullableModule());
 
         sampleTxId = UUID.randomUUID().toString();
         Customer customer = new Customer(
@@ -81,8 +85,8 @@ class TransactionControllerTest {
             TransactionStatus.PENDING, LocalDateTime.now()
         );
 
-        com.tumipay.transaction_orchestrator.api.model.TransactionData data =
-            new com.tumipay.transaction_orchestrator.api.model.TransactionData()
+        TransactionData data =
+            new TransactionData()
                 .transactionId(UUID.fromString(sampleTxId))
                 .clientTransactionId("CLIENT-TX-001")
                 .amount(10000)
@@ -91,7 +95,7 @@ class TransactionControllerTest {
                 .status(com.tumipay.transaction_orchestrator.api.model.TransactionStatus.PENDING)
                 .createdAt(java.time.OffsetDateTime.now());
 
-        sampleResponse = new com.tumipay.transaction_orchestrator.api.model.TransactionResponseWrapper();
+        sampleResponse = new TransactionResponseWrapper();
         sampleResponse.setCode("000");
         sampleResponse.setMessage("Successful operation");
         sampleResponse.setData(data);
@@ -132,7 +136,7 @@ class TransactionControllerTest {
             when(createUseCase.execute(any())).thenReturn(sampleTransaction);
             when(mapper.toResponse(sampleTransaction)).thenReturn(sampleResponse);
 
-            mockMvc.perform(post("/transactions")
+            mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(buildValidCreateRequest("CLIENT-TX-001")))
                 .andExpect(status().isCreated())
@@ -148,7 +152,7 @@ class TransactionControllerTest {
             when(createUseCase.execute(any()))
                 .thenThrow(new BusinessException(ErrorCode.INVALID_COUNTRY, "Invalid country code: XX"));
 
-            mockMvc.perform(post("/transactions")
+            mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(buildValidCreateRequest("CLIENT-TX-002")))
                 .andExpect(status().isBadRequest())
@@ -163,7 +167,7 @@ class TransactionControllerTest {
             when(createUseCase.execute(any()))
                 .thenThrow(new BusinessException(ErrorCode.INVALID_CURRENCY, "Invalid currency code: XXX"));
 
-            mockMvc.perform(post("/transactions")
+            mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(buildValidCreateRequest("CLIENT-TX-003")))
                 .andExpect(status().isBadRequest())
@@ -177,7 +181,7 @@ class TransactionControllerTest {
             when(createUseCase.execute(any()))
                 .thenThrow(new DataIntegrityViolationException("ux_transactions_customer_transaction_id violation"));
 
-            mockMvc.perform(post("/transactions")
+            mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(buildValidCreateRequest("CLIENT-TX-DUPLICATE")))
                 .andExpect(status().isConflict())
@@ -192,7 +196,7 @@ class TransactionControllerTest {
             when(createUseCase.execute(any()))
                 .thenThrow(new BusinessException(ErrorCode.INVALID_PAYMENT_METHOD, "Invalid payment method"));
 
-            mockMvc.perform(post("/transactions")
+            mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(buildValidCreateRequest("CLIENT-TX-004")))
                 .andExpect(status().isBadRequest())
@@ -210,7 +214,7 @@ class TransactionControllerTest {
             when(getUseCase.execute(sampleTxId)).thenReturn(sampleTransaction);
             when(mapper.toResponse(sampleTransaction)).thenReturn(sampleResponse);
 
-            mockMvc.perform(get("/transactions/{id}", sampleTxId)
+            mockMvc.perform(get("/api/v1/transactions/{id}", sampleTxId)
                     .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("000"))
@@ -224,7 +228,7 @@ class TransactionControllerTest {
             when(getUseCase.execute(nonExistingId))
                 .thenThrow(new TransactionNotFoundException("Transaction not found with id: " + nonExistingId));
 
-            mockMvc.perform(get("/transactions/{id}", nonExistingId)
+            mockMvc.perform(get("/api/v1/transactions/{id}", nonExistingId)
                     .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("003"))

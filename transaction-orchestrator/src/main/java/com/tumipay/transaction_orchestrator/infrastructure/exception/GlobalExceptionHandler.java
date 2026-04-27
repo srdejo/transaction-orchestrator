@@ -1,15 +1,18 @@
 package com.tumipay.transaction_orchestrator.infrastructure.exception;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.tumipay.transaction_orchestrator.api.model.ErrorResponseWrapper;
 import com.tumipay.transaction_orchestrator.domain.exception.BusinessException;
 import com.tumipay.transaction_orchestrator.domain.exception.ErrorCode;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -52,12 +55,10 @@ public class GlobalExceptionHandler {
         String message = "Malformed JSON request or invalid data types";
         ErrorCode mappedCode = ErrorCode.VALIDATION_ERROR;
 
-        if (ex.getCause() instanceof com.fasterxml.jackson.databind.exc.InvalidFormatException) {
-            com.fasterxml.jackson.databind.exc.InvalidFormatException ife = (com.fasterxml.jackson.databind.exc.InvalidFormatException) ex
-                    .getCause();
-            if (ife.getPath() != null && !ife.getPath().isEmpty()) {
-                String path = ife.getPath().stream()
-                        .map(ref -> ref.getFieldName())
+        if (ex.getCause() instanceof InvalidFormatException invalidFormatException) {
+            if (invalidFormatException.getPath() != null && !invalidFormatException.getPath().isEmpty()) {
+                String path = invalidFormatException.getPath().stream()
+                        .map(JsonMappingException.Reference::getFieldName)
                         .collect(Collectors.joining("."));
                 message = "Invalid data type for field: " + path;
                 mappedCode = validationErrorMapper.mapFieldToErrorCode(path);

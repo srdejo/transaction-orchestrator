@@ -2,35 +2,33 @@ package com.tumipay.transaction_orchestrator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.tumipay.transaction_orchestrator.application.service.PaymentProviderFactory;
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.domain.ports.out.PaymentProviderPort;
 import com.tumipay.transaction_orchestrator.domain.ports.out.TransactionRepositoryPort;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-import com.tumipay.transaction_orchestrator.application.service.PaymentProviderFactory;
-import com.tumipay.transaction_orchestrator.infrastructure.exception.ProviderException;
-import org.mockito.Mock;
+import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestRestTemplate

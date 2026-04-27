@@ -32,4 +32,11 @@ public class ReferenceDataPersistenceAdapter implements ReferenceDataPort {
         Set<String> validPaymentMethods = cacheLoader.getValidPaymentMethods();
         return validPaymentMethods.contains(paymentMethodId);
     }
+
+    @Override
+    public boolean isCardPaymentMethod(String paymentMethodId) {
+        if (paymentMethodId == null) return false;
+        String cardId = cacheLoader.getCardPaymentMethodId();
+        return paymentMethodId.equals(cardId);
+    }
 }

@@ -2,19 +2,22 @@ package com.tumipay.transaction_orchestrator.infrastructure.adapters.out.provide
 
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.tumipay.transaction_orchestrator.domain.ports.out.PaymentProviderPort;
+import com.tumipay.transaction_orchestrator.domain.ports.out.ReferenceDataPort;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class SuccessfulHttpProviderAdapter implements PaymentProviderPort {
 
     private static final Logger log = LoggerFactory.getLogger(SuccessfulHttpProviderAdapter.class);
+    private final ReferenceDataPort referenceDataPort;
 
     @Override
     public boolean supports(Transaction transaction) {
-        // En este simulador, si el monto NO termina en 99 (ej. no es 9999), se enruta al proveedor exitoso.
-        return transaction.getAmount().amount().longValue() % 100 != 99;
+        return !referenceDataPort.isCardPaymentMethod(transaction.getPaymentMethod().getId());
     }
 
     @Override

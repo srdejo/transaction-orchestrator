@@ -4,6 +4,7 @@ import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persiste
 import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persistence.entity.CurrencyEntity;
 import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persistence.repository.CountryRepository;
 import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persistence.repository.CurrencyRepository;
+import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persistence.repository.PaymentMethodRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -19,7 +20,7 @@ public class ReferenceDataCacheLoader {
 
     private final CountryRepository countryRepository;
     private final CurrencyRepository currencyRepository;
-    private final com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persistence.repository.PaymentMethodRepository paymentMethodRepository;
+    private final PaymentMethodRepository paymentMethodRepository;
 
     @Cacheable("valid_countries")
     public Set<String> getValidCountries() {
@@ -43,5 +44,13 @@ public class ReferenceDataCacheLoader {
         return paymentMethodRepository.findAll().stream()
                 .map(entity -> entity.getId().toString())
                 .collect(Collectors.toSet());
+    }
+
+    @Cacheable("card_payment_method_id")
+    public String getCardPaymentMethodId() {
+        log.info("Loading CARD payment method ID from database to cache...");
+        return paymentMethodRepository.findByCode("CARD")
+                .map(entity -> entity.getId().toString())
+                .orElse("");
     }
 }

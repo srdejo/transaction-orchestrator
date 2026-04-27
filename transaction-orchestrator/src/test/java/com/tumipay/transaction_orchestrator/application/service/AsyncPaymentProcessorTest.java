@@ -61,7 +61,7 @@ class AsyncPaymentProcessorTest {
 
     @Test
     @DisplayName("Given successful provider, when process, then transaction is SUCCESS and saved twice")
-    void givenSuccessfulProvider_whenProcess_thenTransactionIsSuccessAndSavedTwice() throws InterruptedException {
+    void givenSuccessfulProvider_whenProcess_thenTransactionIsSuccessAndSavedTwice() {
         // Arrange: provider sets status to PROCESSING then SUCCESS
         when(paymentProviderFactory.getProvider(any())).thenReturn(paymentProviderPort);
         when(paymentProviderPort.processPayment(any())).thenAnswer(inv -> {

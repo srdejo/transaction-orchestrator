@@ -9,6 +9,7 @@ import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
 import com.tumipay.transaction_orchestrator.domain.ports.out.PaymentProviderPort;
+import com.tumipay.transaction_orchestrator.domain.ports.out.ReferenceDataPort;
 import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.provider.FailingHttpProviderAdapter;
 import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.provider.SuccessfulHttpProviderAdapter;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 
 @DisplayName("PaymentProviderFactory Tests")
 class PaymentProviderFactoryTest {
@@ -29,24 +31,29 @@ class PaymentProviderFactoryTest {
     private PaymentProviderFactory factory;
     private SuccessfulHttpProviderAdapter successfulProvider;
     private FailingHttpProviderAdapter failingProvider;
+    private ReferenceDataPort referenceDataPort;
+
+    private static final String CARD_ID = "550e8400-e29b-41d4-a716-446655440001";
+    private static final String OTHER_ID = "550e8400-e29b-41d4-a716-446655440002";
 
     @BeforeEach
     void setUp() {
-        successfulProvider = new SuccessfulHttpProviderAdapter();
-        failingProvider = new FailingHttpProviderAdapter();
+        referenceDataPort = mock(ReferenceDataPort.class);
+        successfulProvider = new SuccessfulHttpProviderAdapter(referenceDataPort);
+        failingProvider = new FailingHttpProviderAdapter(referenceDataPort);
         factory = new PaymentProviderFactory(List.of(successfulProvider, failingProvider));
     }
 
-    private Transaction buildTransaction(long amountCents) {
+    private Transaction buildTransaction(String paymentMethodId) {
         Customer customer = new Customer(
             DocumentType.CC, "12345678", "+57", "3001234567",
             "john.doe@example.com", "John", null, "Doe", null
         );
         return Transaction.reconstruct(
             UUID.randomUUID().toString(), "CLIENT-TX",
-            new Money(BigDecimal.valueOf(amountCents), new Currency("USD")),
+            new Money(BigDecimal.valueOf(10000), new Currency("USD")),
             new CountryCode("CO"),
-            new PaymentMethod(UUID.randomUUID().toString()),
+            new PaymentMethod(paymentMethodId),
             "https://webhook.example.com", "https://redirect.example.com",
             customer, "Test", null,
             TransactionStatus.PENDING, LocalDateTime.now()
@@ -54,9 +61,10 @@ class PaymentProviderFactoryTest {
     }
 
     @Test
-    @DisplayName("Given amount NOT ending in 99, when getProvider, then returns SuccessfulHttpProviderAdapter")
-    void givenAmountNotEndingIn99_whenGetProvider_thenReturnsSuccessfulProvider() {
-        Transaction tx = buildTransaction(10000); // 10000 % 100 = 0, not 99
+    @DisplayName("Given payment method is NOT CARD, when getProvider, then returns SuccessfulHttpProviderAdapter")
+    void givenPaymentMethodNotCard_whenGetProvider_thenReturnsSuccessfulProvider() {
+        Transaction tx = buildTransaction(OTHER_ID);
+        when(referenceDataPort.isCardPaymentMethod(OTHER_ID)).thenReturn(false);
 
         PaymentProviderPort provider = factory.getProvider(tx);
 
@@ -64,9 +72,10 @@ class PaymentProviderFactoryTest {
     }
 
     @Test
-    @DisplayName("Given amount ending in 99, when getProvider, then returns FailingHttpProviderAdapter")
-    void givenAmountEndingIn99_whenGetProvider_thenReturnsFailingProvider() {
-        Transaction tx = buildTransaction(9999); // 9999 % 100 = 99
+    @DisplayName("Given payment method IS CARD, when getProvider, then returns FailingHttpProviderAdapter")
+    void givenPaymentMethodCard_whenGetProvider_thenReturnsFailingProvider() {
+        Transaction tx = buildTransaction(CARD_ID);
+        when(referenceDataPort.isCardPaymentMethod(CARD_ID)).thenReturn(true);
 
         PaymentProviderPort provider = factory.getProvider(tx);
 
@@ -78,7 +87,7 @@ class PaymentProviderFactoryTest {
     void givenNoSupportedProvider_whenGetProvider_thenThrowsIllegalArgument() {
         // Create factory with no providers
         PaymentProviderFactory emptyFactory = new PaymentProviderFactory(List.of());
-        Transaction tx = buildTransaction(10000);
+        Transaction tx = buildTransaction(OTHER_ID);
 
         assertThatThrownBy(() -> emptyFactory.getProvider(tx))
             .isInstanceOf(IllegalArgumentException.class)
