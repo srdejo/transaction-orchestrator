@@ -1,69 +1,14 @@
-# ADR 0005: Estrategia de Proveedores de Pago
+# ADR-0005: Proveedores de Pago
 
-## Estado
-✅ Aceptado
+**Date:** 2026-04-27
+**Status:** Accepted
 
-## Contexto
-Necesitar soportar múltiples proveedores:
-- Stripe, PayPal, etc.
-- Cambiar proveedores sin afectar lógica central
-- Diferencias específicas entre proveedores
+## Context
+El sistema debe ser capaz de integrarse con múltiples proveedores de pago (Stripe, PayPal, Mocks) y permitir el cambio o adición de nuevos proveedores sin afectar la lógica de negocio central.
 
-## Decisión
-Usar **Strategy Pattern** con **Factory** para proveedores.
+## Decision
+Aplicar el patrón **Strategy** junto con una **Factory** para gestionar los proveedores. Cada proveedor implementa un puerto común (`PaymentProviderPort`), y el sistema selecciona la implementación adecuada basándose en la configuración o el método de pago solicitado.
 
-## Arquitectura
-```
-PaymentProviderPort (interfaz)
-    ↑
-    ├── StripePaymentProvider
-    ├── PayPalPaymentProvider
-    └── MockPaymentProvider
-    
-PaymentProviderFactory → selecciona proveedor
-```
-
-## Interfaz
-```java
-public interface PaymentProviderPort {
-    TransactionResponse processPayment(PaymentRequest request);
-    TransactionStatus checkStatus(String transactionId);
-}
-```
-
-## Selección de Proveedor
-```
-payment_method_id: "CARD" → StripePaymentProvider
-payment_method_id: "PAYPAL" → PayPalPaymentProvider
-payment_method_id: "MOCK" → MockPaymentProvider (dev/test)
-```
-
-## Configuración
-```properties
-payment.providers.stripe.enabled=true
-payment.providers.stripe.api-key=${STRIPE_API_KEY}
-
-payment.providers.paypal.enabled=true
-payment.providers.paypal.client-id=${PAYPAL_CLIENT_ID}
-
-payment.providers.mock.enabled=true
-```
-
-## Ventajas
-- ✅ Fácil agregar nuevos proveedores
-- ✅ Lógica encapsulada por proveedor
-- ✅ Fácil de testear con Mock
-- ✅ Cambio de estrategia en runtime
-
-## Checklist para Nuevo Proveedor
-1. Crear clase implementando `PaymentProviderPort`
-2. Implementar `processPayment()` y `checkStatus()`
-3. Agregar propiedades de configuración
-4. Registrar en `PaymentProviderFactory`
-5. Tests de integración
-6. Documentar límites y particularidades
-
-
-## Documentos Relacionados
-- ADR-0001: Arquitectura Hexagonal
-- ADR-0006: Manejo de Webhooks
+## Consequences
+- **Pros**: Alta extensibilidad, facilidad para realizar pruebas con implementaciones Mock y aislamiento de las particularidades de cada API externa.
+- **Cons**: Requiere una interfaz común que debe ser lo suficientemente flexible para cubrir las necesidades de diversos proveedores.

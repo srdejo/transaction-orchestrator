@@ -1,45 +1,14 @@
 # ADR-0007: Trunk-Based Development
 
-## Status
-
-Accepted
+**Date:** 2026-04-27
+**Status:** Accepted
 
 ## Context
-
-Se requiere integración continua, entregas rápidas y bajo overhead en branching.
+Se busca agilizar el ciclo de entrega y reducir la complejidad de las integraciones de código (merge hell) típicas de modelos basados en ramas de larga duración.
 
 ## Decision
-
-Adoptar **Trunk-Based Development**: cambios integrados frecuentemente a `main` mediante ramas cortas.
-
-## Flow
-
-* Branch corto desde `main`
-* PR + CI (build/test)
-* Merge a `main`
-
-## Guidelines
-
-* Branches < 2 días
-* Commits pequeños
-* Uso de feature flags
-* `main` siempre deployable
-
-## Pros
-
-* Menos conflictos
-* Feedback rápido
-* Flujo simple
-
-## Cons
-
-* Requiere disciplina
-* Dependencia de CI/CD
-
-## Alternative
-
-* Git Flow: descartado por complejidad
+Adoptar **Trunk-Based Development**. Los desarrolladores integran cambios pequeños y frecuentes directamente en la rama principal (`main`), apoyándose en pipelines de CI automatizados para garantizar la estabilidad.
 
 ## Consequences
-
-Mejora velocidad de entrega y simplicidad operativa.
+- **Pros**: Integración continua real, reducción de conflictos de código y feedback inmediato sobre la calidad del software.
+- **Cons**: Requiere una suite de pruebas automatizadas robusta y disciplina de equipo para no romper la rama principal.
