@@ -72,7 +72,8 @@ openApiGenerate {
             "skipFormModel": "true",
             "serializableModel": "true",
             "java8": "true",
-            "useBeanValidation": "true"
+            "useBeanValidation": "true",
+            "openApiNullable": "false"
     ]
 }
 
