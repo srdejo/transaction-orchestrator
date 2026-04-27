@@ -53,7 +53,7 @@ CREATE TABLE customers (
 CREATE TYPE transaction_status AS ENUM (
     'PENDING',
     'PROCESSING',
-    'COMPLETED',
+    'SUCCESS',
     'FAILED',
     'CANCELLED'
 );
@@ -84,6 +84,7 @@ CREATE TABLE transactions (
     status transaction_status NOT NULL DEFAULT 'PENDING',
 
     processed_at TIMESTAMP,
+    provider_response TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_customer
