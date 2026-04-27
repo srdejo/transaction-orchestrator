@@ -15,6 +15,9 @@ public class ValidationErrorMapper {
         if (fieldName.contains("phone")) return ErrorCode.INVALID_PHONE;
         if (fieldName.contains("amount")) return ErrorCode.INVALID_AMOUNT;
         if (fieldName.contains("document")) return ErrorCode.INVALID_DOCUMENT;
+        if (fieldName.contains("country")) return ErrorCode.INVALID_COUNTRY;
+        if (fieldName.contains("currency")) return ErrorCode.INVALID_CURRENCY;
+        if (fieldName.contains("payment_method")) return ErrorCode.INVALID_PAYMENT_METHOD;
         
         return ErrorCode.VALIDATION_ERROR;
     }
