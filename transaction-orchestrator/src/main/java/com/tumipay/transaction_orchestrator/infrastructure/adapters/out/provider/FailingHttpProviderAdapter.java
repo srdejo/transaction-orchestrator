@@ -3,6 +3,7 @@ package com.tumipay.transaction_orchestrator.infrastructure.adapters.out.provide
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.tumipay.transaction_orchestrator.domain.ports.out.PaymentProviderPort;
 import com.tumipay.transaction_orchestrator.domain.ports.out.ReferenceDataPort;
+import com.tumipay.transaction_orchestrator.infrastructure.util.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ public class FailingHttpProviderAdapter implements PaymentProviderPort {
         log.error("[PROVEEDOR FALLIDO] Response HTTP 400 Bad Request - Fondos Insuficientes");
         log.info("=====================================================");
 
-        transaction.updateProviderResponse("{\"error\": \"insufficient_funds\", \"error_code\": \"105\", \"message\": \"The customer has insufficient funds\"}");
+        transaction.updateProviderResponse(AppConstants.MOCK_FAIL_RESPONSE);
         transaction.fail(); // Falla la transacción (cambia a FAILED)
         return transaction;
     }

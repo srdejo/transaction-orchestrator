@@ -8,6 +8,7 @@ import com.tumipay.transaction_orchestrator.application.ports.in.command.CreateT
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tumipay.transaction_orchestrator.infrastructure.config.MessageService;
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,10 +23,12 @@ public class TransactionMapper {
 
     private final CustomerMapper customerMapper;
     private final ObjectMapper objectMapper;
+    private final MessageService messageService;
 
-    public TransactionMapper(CustomerMapper customerMapper, ObjectMapper objectMapper) {
+    public TransactionMapper(CustomerMapper customerMapper, ObjectMapper objectMapper, MessageService messageService) {
         this.customerMapper = customerMapper;
         this.objectMapper = objectMapper;
+        this.messageService = messageService;
     }
 
     public CreateTransactionCommand toCommand(CreateTransactionRequest request) {
@@ -65,8 +68,8 @@ public class TransactionMapper {
         }
 
         TransactionResponseWrapper response = new TransactionResponseWrapper();
-        response.setCode("000");
-        response.setMessage("Successful operation");
+        response.setCode(messageService.getMessage("success.operation.code"));
+        response.setMessage(messageService.getMessage("success.operation.message"));
         response.setData(data);
         return response;
     }

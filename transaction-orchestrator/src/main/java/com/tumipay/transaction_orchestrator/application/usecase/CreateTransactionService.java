@@ -38,17 +38,20 @@ public class CreateTransactionService implements CreateTransactionUseCase {
         if (!referenceDataPort.isValidCountry(command.countryCode())) {
             throw new BusinessException(
                     ErrorCode.INVALID_COUNTRY,
-                    "Invalid country code: " + command.countryCode());
+                    "error.001.detail",
+                    command.countryCode());
         }
         if (!referenceDataPort.isValidCurrency(command.currency())) {
             throw new BusinessException(
                     ErrorCode.INVALID_CURRENCY,
-                    "Invalid currency code: " + command.currency());
+                    "error.002.detail",
+                    command.currency());
         }
         if (!referenceDataPort.isValidPaymentMethod(command.paymentMethodId())) {
             throw new BusinessException(
                     ErrorCode.INVALID_PAYMENT_METHOD,
-                    "Invalid payment method with id: " + command.paymentMethodId());
+                    "error.004.detail",
+                    command.paymentMethodId());
         }
 
         Customer customer = new Customer(

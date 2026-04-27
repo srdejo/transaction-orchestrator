@@ -18,6 +18,6 @@ public class GetTransactionService implements GetTransactionUseCase {
     @Override
     public Transaction execute(String id) {
         return transactionRepository.findById(id)
-                .orElseThrow(() -> new TransactionNotFoundException("Transaction not found with id: " + id));
+                .orElseThrow(() -> new TransactionNotFoundException("error.003"));
     }
 }
