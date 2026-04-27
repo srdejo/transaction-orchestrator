@@ -76,13 +76,13 @@ class TransactionValidationTest {
     }
 
     @Test
-    @DisplayName("Given amount as decimal, when create, then returns 400 Bad Request")
-    void givenAmountAsDecimal_whenCreate_thenReturns400() throws Exception {
+    @DisplayName("Given amount as numeric decimal, when create, then returns 400 Bad Request")
+    void givenAmountAsNumericDecimal_whenCreate_thenReturns400() throws Exception {
         java.util.Map<String, Object> requestMap = TransactionTestData.defaultData()
-            .withClientTransactionId("TX-DECIMAL")
+            .withClientTransactionId("TX-NUMERIC-DECIMAL")
             .build()
             .buildApiRequestMap();
-        requestMap.put("amount", "100.50");
+        requestMap.put("amount", 10000.00);
 
         mockMvc.perform(post("/api/v1/transactions")
                 .contentType(MediaType.APPLICATION_JSON)

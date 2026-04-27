@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.tumipay.transaction_orchestrator.infrastructure.config.MessageService;
 import com.tumipay.transaction_orchestrator.infrastructure.util.AppConstants;
+import lombok.extern.slf4j.Slf4j;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -42,6 +44,8 @@ public class GlobalExceptionHandler {
         String errorMessage = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
+        
+        log.warn("Validation error: {}", errorMessage);
 
         String firstField = ex.getBindingResult().getFieldErrors().isEmpty() ? null
                 : ex.getBindingResult().getFieldErrors().get(0).getField();
@@ -121,7 +125,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseWrapper> handleGenericException(Exception ex) {
-        ex.printStackTrace();
+        log.error("Unexpected error: ", ex);
         ErrorResponseWrapper errorResponse = new ErrorResponseWrapper();
         errorResponse.setCode(ErrorCode.INTERNAL_ERROR.getCode());
         errorResponse.setMessage(messageService.getMessage("error.db.unexpected"));

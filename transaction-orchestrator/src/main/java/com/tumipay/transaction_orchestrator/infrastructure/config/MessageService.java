@@ -1,10 +1,12 @@
 package com.tumipay.transaction_orchestrator.infrastructure.config;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MessageService {
@@ -18,7 +20,10 @@ public class MessageService {
      * @return Resolved message
      */
     public String getMessage(String key, Object... args) {
-        return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+        Object[] messageArgs = (args == null) ? new Object[0] : args;
+        String message = messageSource.getMessage(key, messageArgs, LocaleContextHolder.getLocale());
+        log.debug("Resolved message for key {}: {}", key, message);
+        return message;
     }
 
     /**

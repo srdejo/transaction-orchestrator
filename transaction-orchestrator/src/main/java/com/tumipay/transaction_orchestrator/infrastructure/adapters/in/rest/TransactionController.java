@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1")
 @Tag(name = "Transactions")
@@ -37,6 +39,7 @@ public class TransactionController implements TransactionsApi {
 
     @Override
     public ResponseEntity<TransactionResponseWrapper> createTransaction(@Valid @RequestBody CreateTransactionRequest request) {
+        log.info("Creating transaction for client: {}", request.getClientTransactionId());
         Transaction transaction = createUseCase.execute(mapper.toCommand(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(transaction));
     }
