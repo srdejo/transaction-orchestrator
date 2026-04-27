@@ -11,7 +11,6 @@ import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
 import com.tumipay.transaction_orchestrator.domain.ports.out.ReferenceDataPort;
 import com.tumipay.transaction_orchestrator.domain.ports.out.TransactionRepositoryPort;
 import org.springframework.stereotype.Service;
@@ -57,21 +56,22 @@ public class CreateTransactionService implements CreateTransactionUseCase {
         Customer customer = new Customer(
                 DocumentType.valueOf(command.customer().documentType()),
                 command.customer().documentNumber(),
-                command.customer().countryCallCode(),
-                command.customer().phone(),
+                command.customer().countryCallingCode(),
+                command.customer().phoneNumber(),
                 command.customer().email(),
                 command.customer().firstName(),
                 command.customer().middleName(),
                 command.customer().lastName(),
                 command.customer().secondLastName());
 
-        Money money = new Money(command.amount(), new Currency(command.currency()));
+        Currency currency = new Currency(command.currency());
         CountryCode countryCode = new CountryCode(command.countryCode());
         PaymentMethod paymentMethod = new PaymentMethod(command.paymentMethodId());
 
         Transaction transaction = new Transaction(
                 command.clientTransactionId(),
-                money,
+                command.amount(),
+                currency,
                 countryCode,
                 paymentMethod,
                 command.webhookUrl(),

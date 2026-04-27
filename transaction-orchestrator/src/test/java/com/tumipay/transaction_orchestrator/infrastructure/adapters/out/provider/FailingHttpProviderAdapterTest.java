@@ -7,12 +7,10 @@ import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -39,7 +37,8 @@ class FailingHttpProviderAdapterTest {
         );
         return Transaction.reconstruct(
             UUID.randomUUID().toString(), "CLIENT-TX",
-            new Money(BigDecimal.valueOf(10000), new Currency("USD")),
+            10000L,
+            new Currency("USD"),
             new CountryCode("CO"),
             new PaymentMethod(paymentMethodId),
             "https://webhook.example.com", "https://redirect.example.com",

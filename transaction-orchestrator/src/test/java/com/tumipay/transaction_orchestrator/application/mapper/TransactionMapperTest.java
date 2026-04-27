@@ -9,13 +9,11 @@ import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
 import com.tumipay.transaction_orchestrator.infrastructure.config.MessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -53,7 +51,8 @@ class TransactionMapperTest {
         String pmId = UUID.randomUUID().toString();
         return Transaction.reconstruct(
             txId, "CLIENT-TX-001",
-            new Money(BigDecimal.valueOf(10000), new Currency("USD")),
+            10000L,
+            new Currency("USD"),
             new CountryCode("CO"),
             new PaymentMethod(pmId),
             "https://webhook.example.com", "https://redirect.example.com",
@@ -79,6 +78,8 @@ class TransactionMapperTest {
     @DisplayName("Given a domain Transaction, when toResponse, then data contains correct transaction fields")
     void givenDomainTransaction_whenToResponse_thenDataHasCorrectFields() {
         Transaction transaction = buildDomainTransaction();
+        transaction.process();
+        transaction.complete(); // This sets processedAt
 
         var response = mapper.toResponse(transaction);
         var data = response.getData();
@@ -88,6 +89,7 @@ class TransactionMapperTest {
         assertThat(data.getCurrency()).isEqualTo("USD");
         assertThat(data.getCountry()).isEqualTo("CO");
         assertThat(data.getAmount()).isEqualTo(10000);
+        assertThat(data.getProcessedAt()).isNotNull();
     }
 
 
@@ -112,7 +114,7 @@ class TransactionMapperTest {
         assertThat(cmd.clientTransactionId()).isEqualTo("CLIENT-TX-001");
         assertThat(cmd.currency()).isEqualTo("USD");
         assertThat(cmd.countryCode()).isEqualTo("CO");
-        assertThat(cmd.amount()).isEqualByComparingTo(BigDecimal.valueOf(100.0));
+        assertThat(cmd.amount()).isEqualTo(100L);
         assertThat(cmd.customer()).isNotNull();
     }
 }

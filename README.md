@@ -46,12 +46,25 @@ Una vez iniciados los contenedores, se puede interactuar con la API y consultar 
 
 El proyecto implementa principios de ingeniería para asegurar escalabilidad y mantenibilidad:
 
-* **Arquitectura Hexagonal:** Aislamiento del dominio frente a detalles de infraestructura.
-* **OpenAPI Contract-First:** Definición formal de la API previa al desarrollo.
-* **Idempotencia:** Control de duplicados en tiempo real mediante Redis.
-* **Persistencia:** PostgreSQL con gestión de migraciones mediante Flyway.
+*   **Arquitectura Hexagonal:** Aislamiento del dominio frente a detalles de infraestructura.
+*   **OpenAPI Contract-First:** Definición formal de la API previa al desarrollo, alineada con los requisitos `snake_case` y nomenclatura estándar (ISO 4217, ISO 3166-1).
+*   **Idempotencia:** Control de duplicados en tiempo real mediante Redis.
+*   **Persistencia:** PostgreSQL con gestión de migraciones mediante Flyway y modelo de datos normalizado.
+*   **Procesamiento Asíncrono:** Gestión de estados mediante el patrón Strategy para múltiples proveedores de pago.
 
-### Documentación Técnica Relacionada
+---
+
+## Cumplimiento de Requisitos Técnicos
+
+El microservicio ha sido diseñado para cumplir estrictamente con la prueba técnica **IT-TEST-001**:
+- **Validación:** Implementada tanto a nivel de API (Bean Validation) como en la capa de aplicación (Domain Logic).
+- **Nomenclatura:** Todos los campos utilizan `snake_case`.
+- **Estados:** Soporte para `PENDING`, `PROCESSING`, `SUCCESS`, `FAILED`.
+- **Campos Específicos:** Se incluyeron campos como `processed_at`, `redirect_url`, `country_calling_code`, etc., tal como se solicita.
+
+---
+
+## Documentación Técnica Relacionada
 * [Registro de Decisiones Arquitectónicas (ADRs)](docs/adr/README.md)
 * [Patrones de Diseño Aplicados](docs/design-patterns.md)
 * [Análisis de Riesgos](docs/risk.md)

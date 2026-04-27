@@ -16,7 +16,6 @@ import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.GlobalExceptionHandler;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.TransactionNotFoundException;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.ValidationErrorMapper;
@@ -33,7 +32,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -80,12 +78,13 @@ class TransactionControllerTest {
         );
         sampleTransaction = Transaction.reconstruct(
             sampleTxId, "CLIENT-TX-001",
-            new Money(BigDecimal.valueOf(10000), new Currency("USD")),
+            10000L,
+            new Currency("USD"),
             new CountryCode("CO"),
             new PaymentMethod(UUID.randomUUID().toString()),
             "https://webhook.example.com", "https://redirect.example.com",
-            customer, "Test payment", null,
-            TransactionStatus.PENDING, LocalDateTime.now()
+            customer, "Test payment", (LocalDateTime) null,
+            TransactionStatus.PENDING, LocalDateTime.now(), null
         );
 
         TransactionData data =
@@ -133,11 +132,11 @@ class TransactionControllerTest {
                 "country": "CO",
                 "payment_method_id": "%s",
                 "webhook_url": "https://webhook.example.com/notify",
-                "return_url": "https://app.example.com/return",
+                "redirect_url": "https://app.example.com/return",
                 "customer": {
                     "document_type": "CC",
                     "document_number": "12345678",
-                    "phone_code": "+57",
+                    "country_calling_code": "+57",
                     "phone_number": "3001234567",
                     "email": "john.doe@example.com",
                     "first_name": "John",

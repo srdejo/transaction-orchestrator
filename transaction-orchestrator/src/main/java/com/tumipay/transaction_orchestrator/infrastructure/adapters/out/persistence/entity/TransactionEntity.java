@@ -63,6 +63,9 @@ public class TransactionEntity {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "processed_at")
+    private LocalDateTime processedAt;
+
     @Column(name = "expiration_time")
     private LocalDateTime expirationTime;
 

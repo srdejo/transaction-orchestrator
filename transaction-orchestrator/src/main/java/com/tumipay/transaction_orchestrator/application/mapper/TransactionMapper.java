@@ -12,7 +12,6 @@ import com.tumipay.transaction_orchestrator.infrastructure.config.MessageService
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
@@ -34,12 +33,12 @@ public class TransactionMapper {
     public CreateTransactionCommand toCommand(CreateTransactionRequest request) {
         return new CreateTransactionCommand(
             request.getClientTransactionId(),
-            BigDecimal.valueOf(request.getAmount()),
+            request.getAmount().longValue(),
             request.getCurrency(),
             request.getCountry(),
             request.getPaymentMethodId() != null ? request.getPaymentMethodId().toString() : null,
             request.getWebhookUrl() != null ? request.getWebhookUrl() : null,
-            request.getReturnUrl() != null ? request.getReturnUrl() : null,
+            request.getRedirectUrl() != null ? request.getRedirectUrl() : null,
             customerMapper.toCommand(request.getCustomer()),
             request.getDescription(),
             request.getExpirationTime() != null ? LocalDateTime.now().plusSeconds(request.getExpirationTime()) : null
@@ -52,12 +51,13 @@ public class TransactionMapper {
             .transactionId(UUID.fromString(transaction.getId()))
             .clientTransactionId(transaction.getClientTransactionId())
             .paymentMethodId(transaction.getPaymentMethod().getId())
-            .amount(transaction.getAmount().amount().intValue())
-            .currency(transaction.getAmount().currency().code())
+            .amount((int) transaction.getAmount())
+            .currency(transaction.getCurrency().code())
             .country(transaction.getCountryCode().value())
             .description(transaction.getDescription())
             .status(TransactionStatus.fromValue(transaction.getStatus().name()))
-            .createdAt(transaction.getCreatedAt().atOffset(ZoneOffset.UTC));
+            .createdAt(transaction.getCreatedAt().atOffset(ZoneOffset.UTC))
+            .processedAt(transaction.getProcessedAt() != null ? transaction.getProcessedAt().atOffset(ZoneOffset.UTC) : null);
 
         if (transaction.getProviderResponse() != null) {
             try {

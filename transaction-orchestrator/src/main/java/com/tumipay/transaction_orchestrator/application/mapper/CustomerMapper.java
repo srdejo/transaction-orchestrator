@@ -13,11 +13,11 @@ public class CustomerMapper {
         return new CreateTransactionCommand.CustomerCommand(
             requestCustomer.getDocumentType(),
             requestCustomer.getDocumentNumber(),
-            requestCustomer.getPhoneCode(),
+            requestCustomer.getCountryCallingCode(),
             requestCustomer.getPhoneNumber(),
             requestCustomer.getEmail(),
             requestCustomer.getFirstName(),
-            requestCustomer.getSecondName(),
+            requestCustomer.getMiddleName(),
             requestCustomer.getLastName(),
             requestCustomer.getSecondLastName()
         );
