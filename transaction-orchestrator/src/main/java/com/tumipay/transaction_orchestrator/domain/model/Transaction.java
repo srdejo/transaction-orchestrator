@@ -73,7 +73,7 @@ public class Transaction {
         if (this.status != TransactionStatus.PROCESSING) {
             throw new IllegalStateException("Only PROCESSING transactions can be completed");
         }
-        this.status = TransactionStatus.COMPLETED;
+        this.status = TransactionStatus.SUCCESS;
     }
 
     public void fail() {
@@ -81,8 +81,8 @@ public class Transaction {
     }
     
     public void cancel() {
-        if (this.status == TransactionStatus.COMPLETED) {
-            throw new IllegalStateException("COMPLETED transactions cannot be cancelled");
+        if (this.status == TransactionStatus.SUCCESS) {
+            throw new IllegalStateException("SUCCESS transactions cannot be cancelled");
         }
         this.status = TransactionStatus.CANCELLED;
     }

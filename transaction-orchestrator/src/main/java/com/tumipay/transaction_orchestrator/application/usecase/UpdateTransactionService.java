@@ -21,7 +21,7 @@ public class UpdateTransactionService implements UpdateTransactionUseCase {
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new TransactionNotFoundException("Transaction not found with id: " + id));
 
-        if ("COMPLETED".equalsIgnoreCase(command.status())) {
+        if ("SUCCESS".equalsIgnoreCase(command.status())) {
             transaction.complete();
         } else if ("FAILED".equalsIgnoreCase(command.status())) {
             transaction.fail();
