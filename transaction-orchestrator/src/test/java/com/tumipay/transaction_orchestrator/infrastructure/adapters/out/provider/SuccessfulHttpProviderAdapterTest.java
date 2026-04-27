@@ -66,5 +66,6 @@ class SuccessfulHttpProviderAdapterTest {
         Transaction result = adapter.processPayment(tx);
 
         assertThat(result.getStatus()).isEqualTo(TransactionStatus.SUCCESS);
+        assertThat(result.getProviderResponse()).contains("approved");
     }
 }

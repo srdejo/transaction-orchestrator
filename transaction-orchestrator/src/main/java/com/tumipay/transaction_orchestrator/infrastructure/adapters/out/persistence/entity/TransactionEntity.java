@@ -69,4 +69,7 @@ public class TransactionEntity {
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "customer_id", nullable = false)
     private CustomerEntity customer;
+
+    @Column(name = "provider_response")
+    private String providerResponse;
 }

@@ -50,6 +50,7 @@ public class TransactionEntityMapper {
         entity.setCreatedAt(domain.getCreatedAt());
         entity.setExpirationTime(domain.getExpirationTime());
         entity.setCustomer(customerMapper.toEntity(domain.getCustomer()));
+        entity.setProviderResponse(domain.getProviderResponse());
 
         return entity;
     }
@@ -71,6 +72,7 @@ public class TransactionEntityMapper {
                 entity.getDescription(),
                 entity.getExpirationTime(),
                 entity.getStatus(),
-                entity.getCreatedAt());
+                entity.getCreatedAt(),
+                entity.getProviderResponse());
     }
 }

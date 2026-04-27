@@ -31,6 +31,7 @@ public class SuccessfulHttpProviderAdapter implements PaymentProviderPort {
         log.info("[PROVEEDOR EXITOSO] Response HTTP 200 OK - Pago Aprobado");
         log.info("=====================================================");
 
+        transaction.updateProviderResponse("{\"status\": \"approved\", \"transaction_id\": \"PROV-SUCCESS-123\", \"message\": \"Payment successful\"}");
         transaction.complete(); // Completa la transacción (cambia a COMPLETED)
         return transaction;
     }

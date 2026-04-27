@@ -66,5 +66,6 @@ class FailingHttpProviderAdapterTest {
         Transaction result = adapter.processPayment(tx);
 
         assertThat(result.getStatus()).isEqualTo(TransactionStatus.FAILED);
+        assertThat(result.getProviderResponse()).contains("insufficient_funds");
     }
 }
