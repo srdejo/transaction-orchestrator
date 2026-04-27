@@ -1,7 +1,10 @@
 package com.tumipay.transaction_orchestrator.infrastructure.exception;
 
-public class TransactionNotFoundException extends RuntimeException {
+import com.tumipay.transaction_orchestrator.domain.exception.BusinessException;
+import com.tumipay.transaction_orchestrator.domain.exception.ErrorCode;
+
+public class TransactionNotFoundException extends BusinessException {
     public TransactionNotFoundException(String message) {
-        super(message);
+        super(ErrorCode.TRANSACTION_NOT_FOUND, message);
     }
 }

@@ -83,14 +83,14 @@ class PaymentProviderFactoryTest {
     }
 
     @Test
-    @DisplayName("Given no provider supports the transaction, when getProvider, then throws IllegalArgumentException")
-    void givenNoSupportedProvider_whenGetProvider_thenThrowsIllegalArgument() {
+    @DisplayName("Given no provider supports the transaction, when getProvider, then throws BusinessException")
+    void givenNoSupportedProvider_whenGetProvider_thenThrowsBusinessException() {
         // Create factory with no providers
         PaymentProviderFactory emptyFactory = new PaymentProviderFactory(List.of());
         Transaction tx = buildTransaction(OTHER_ID);
 
         assertThatThrownBy(() -> emptyFactory.getProvider(tx))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Unsupported payment method");
+            .isInstanceOf(com.tumipay.transaction_orchestrator.domain.exception.BusinessException.class)
+            .hasMessageContaining("error.unsupported.payment.method");
     }
 }

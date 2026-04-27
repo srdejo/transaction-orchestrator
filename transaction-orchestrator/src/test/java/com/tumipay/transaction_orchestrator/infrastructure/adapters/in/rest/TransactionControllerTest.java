@@ -20,6 +20,7 @@ import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.GlobalExceptionHandler;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.TransactionNotFoundException;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.ValidationErrorMapper;
+import com.tumipay.transaction_orchestrator.infrastructure.config.MessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -58,6 +59,8 @@ class TransactionControllerTest {
     private GetTransactionUseCase getUseCase;
     @MockitoBean
     private TransactionMapper mapper;
+    @MockitoBean
+    private MessageService messageService;
 
     private ObjectMapper objectMapper;
     private Transaction sampleTransaction;
@@ -99,6 +102,26 @@ class TransactionControllerTest {
         sampleResponse.setCode("000");
         sampleResponse.setMessage("Successful operation");
         sampleResponse.setData(data);
+
+        // Configure default message resolution for tests
+        when(messageService.getMessage(any(), any())).thenAnswer(invocation -> {
+            String key = invocation.getArgument(0);
+            if (key.equals("error.validation.prefix")) return "Validation error: " + invocation.getArgument(1);
+            if (key.equals("error.001.detail")) return "Invalid country code: " + invocation.getArgument(1);
+            if (key.equals("error.002.detail")) return "Invalid currency code: " + invocation.getArgument(1);
+            if (key.equals("error.004.detail")) return "Invalid payment method with id: " + invocation.getArgument(1);
+            return key;
+        });
+        
+        when(messageService.getMessage(any())).thenAnswer(invocation -> {
+            String key = invocation.getArgument(0);
+            if (key.equals("error.validation.malformed.json")) return "Malformed JSON request or invalid data types";
+            if (key.equals("error.db.duplicate.transaction")) return "A transaction with this client ID already exists";
+            if (key.equals("error.db.constraint.violation")) return "Database constraint violation";
+            if (key.equals("error.db.unexpected")) return "An unexpected error occurred";
+            if (key.equals("error.003")) return "Transaction not found";
+            return key;
+        });
     }
 
     private String buildValidCreateRequest(String clientTxId) {
@@ -150,7 +173,7 @@ class TransactionControllerTest {
         void givenInvalidCountry_whenCreate_thenReturns400WithInvalidCountryCode() throws Exception {
             when(mapper.toCommand(any(com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest.class))).thenReturn(null);
             when(createUseCase.execute(any()))
-                .thenThrow(new BusinessException(ErrorCode.INVALID_COUNTRY, "Invalid country code: XX"));
+                .thenThrow(new BusinessException(ErrorCode.INVALID_COUNTRY, "error.001.detail", "XX"));
 
             mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -165,7 +188,7 @@ class TransactionControllerTest {
         void givenInvalidCurrency_whenCreate_thenReturns400WithInvalidCurrencyCode() throws Exception {
             when(mapper.toCommand(any(com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest.class))).thenReturn(null);
             when(createUseCase.execute(any()))
-                .thenThrow(new BusinessException(ErrorCode.INVALID_CURRENCY, "Invalid currency code: XXX"));
+                .thenThrow(new BusinessException(ErrorCode.INVALID_CURRENCY, "error.002.detail", "XXX"));
 
             mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -194,7 +217,7 @@ class TransactionControllerTest {
         void givenInvalidPaymentMethod_whenCreate_thenReturns400WithCode004() throws Exception {
             when(mapper.toCommand(any(com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest.class))).thenReturn(null);
             when(createUseCase.execute(any()))
-                .thenThrow(new BusinessException(ErrorCode.INVALID_PAYMENT_METHOD, "Invalid payment method"));
+                .thenThrow(new BusinessException(ErrorCode.INVALID_PAYMENT_METHOD, "error.004.detail", "PM-ID"));
 
             mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -226,7 +249,7 @@ class TransactionControllerTest {
         void givenNonExistingId_whenGet_thenReturns404WithCode003() throws Exception {
             String nonExistingId = UUID.randomUUID().toString();
             when(getUseCase.execute(nonExistingId))
-                .thenThrow(new TransactionNotFoundException("Transaction not found with id: " + nonExistingId));
+                .thenThrow(new TransactionNotFoundException("error.003"));
 
             mockMvc.perform(get("/api/v1/transactions/{id}", nonExistingId)
                     .accept(MediaType.APPLICATION_JSON))

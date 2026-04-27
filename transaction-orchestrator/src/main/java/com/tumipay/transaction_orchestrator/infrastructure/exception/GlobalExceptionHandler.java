@@ -13,22 +13,26 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.tumipay.transaction_orchestrator.infrastructure.config.MessageService;
+import com.tumipay.transaction_orchestrator.infrastructure.util.AppConstants;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private final ValidationErrorMapper validationErrorMapper;
+    private final MessageService messageService;
 
-    public GlobalExceptionHandler(ValidationErrorMapper validationErrorMapper) {
+    public GlobalExceptionHandler(ValidationErrorMapper validationErrorMapper, MessageService messageService) {
         this.validationErrorMapper = validationErrorMapper;
+        this.messageService = messageService;
     }
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponseWrapper> handleBusinessException(BusinessException ex) {
         ErrorResponseWrapper errorResponse = new ErrorResponseWrapper();
         errorResponse.setCode(ex.getErrorCode().getCode());
-        errorResponse.setMessage(ex.getMessage());
+        errorResponse.setMessage(messageService.getMessage(ex.getMessageKey(), ex.getArgs()));
         errorResponse.setData(null);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
@@ -45,14 +49,14 @@ public class GlobalExceptionHandler {
 
         ErrorResponseWrapper errorResponse = new ErrorResponseWrapper();
         errorResponse.setCode(mappedCode.getCode());
-        errorResponse.setMessage("Validation error: " + errorMessage);
+        errorResponse.setMessage(messageService.getMessage("error.validation.prefix", errorMessage));
         errorResponse.setData(null);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponseWrapper> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
-        String message = "Malformed JSON request or invalid data types";
+        String message = messageService.getMessage("error.validation.malformed.json");
         ErrorCode mappedCode = ErrorCode.VALIDATION_ERROR;
 
         if (ex.getCause() instanceof InvalidFormatException invalidFormatException) {
@@ -60,7 +64,7 @@ public class GlobalExceptionHandler {
                 String path = invalidFormatException.getPath().stream()
                         .map(JsonMappingException.Reference::getFieldName)
                         .collect(Collectors.joining("."));
-                message = "Invalid data type for field: " + path;
+                message = messageService.getMessage("error.validation.invalid.type", path);
                 mappedCode = validationErrorMapper.mapFieldToErrorCode(path);
             }
         }
@@ -75,15 +79,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponseWrapper> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         ErrorResponseWrapper errorResponse = new ErrorResponseWrapper();
-        if (ex.getMessage() != null && ex.getMessage().contains("ux_transactions_customer_transaction_id")) {
+        if (ex.getMessage() != null && ex.getMessage().contains(AppConstants.CONSTRAINT_DUPLICATE_TRANSACTION)) {
             errorResponse.setCode(ErrorCode.DUPLICATE_TRANSACTION.getCode());
-            errorResponse.setMessage("A transaction with this client ID already exists");
+            errorResponse.setMessage(messageService.getMessage("error.db.duplicate.transaction"));
             errorResponse.setData(null);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         }
 
         errorResponse.setCode(ErrorCode.INTERNAL_ERROR.getCode());
-        errorResponse.setMessage("Database constraint violation");
+        errorResponse.setMessage(messageService.getMessage("error.db.constraint.violation"));
         errorResponse.setData(null);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
@@ -91,8 +95,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TransactionNotFoundException.class)
     public ResponseEntity<ErrorResponseWrapper> handleNotFound(TransactionNotFoundException ex) {
         ErrorResponseWrapper errorResponse = new ErrorResponseWrapper();
-        errorResponse.setCode(ErrorCode.TRANSACTION_NOT_FOUND.getCode());
-        errorResponse.setMessage(ex.getMessage());
+        errorResponse.setCode(ex.getErrorCode().getCode());
+        errorResponse.setMessage(messageService.getMessage(ex.getMessageKey(), ex.getArgs()));
         errorResponse.setData(null);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
@@ -100,8 +104,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidTransactionException.class)
     public ResponseEntity<ErrorResponseWrapper> handleInvalid(InvalidTransactionException ex) {
         ErrorResponseWrapper errorResponse = new ErrorResponseWrapper();
-        errorResponse.setCode(ErrorCode.VALIDATION_ERROR.getCode());
-        errorResponse.setMessage(ex.getMessage());
+        errorResponse.setCode(ex.getErrorCode().getCode());
+        errorResponse.setMessage(messageService.getMessage(ex.getMessageKey(), ex.getArgs()));
         errorResponse.setData(null);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
@@ -109,8 +113,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ProviderException.class)
     public ResponseEntity<ErrorResponseWrapper> handleProvider(ProviderException ex) {
         ErrorResponseWrapper errorResponse = new ErrorResponseWrapper();
-        errorResponse.setCode(ErrorCode.PROVIDER_ERROR.getCode());
-        errorResponse.setMessage(ex.getMessage());
+        errorResponse.setCode(ex.getErrorCode().getCode());
+        errorResponse.setMessage(messageService.getMessage(ex.getMessageKey(), ex.getArgs()));
         errorResponse.setData(null);
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(errorResponse);
     }
@@ -120,7 +124,7 @@ public class GlobalExceptionHandler {
         ex.printStackTrace();
         ErrorResponseWrapper errorResponse = new ErrorResponseWrapper();
         errorResponse.setCode(ErrorCode.INTERNAL_ERROR.getCode());
-        errorResponse.setMessage("An unexpected error occurred");
+        errorResponse.setMessage(messageService.getMessage("error.db.unexpected"));
         errorResponse.setData(null);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }

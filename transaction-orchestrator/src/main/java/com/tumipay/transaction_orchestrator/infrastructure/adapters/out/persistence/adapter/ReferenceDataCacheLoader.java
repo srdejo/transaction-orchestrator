@@ -5,6 +5,7 @@ import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persiste
 import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persistence.repository.CountryRepository;
 import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persistence.repository.CurrencyRepository;
 import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persistence.repository.PaymentMethodRepository;
+import com.tumipay.transaction_orchestrator.infrastructure.util.AppConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -22,7 +23,7 @@ public class ReferenceDataCacheLoader {
     private final CurrencyRepository currencyRepository;
     private final PaymentMethodRepository paymentMethodRepository;
 
-    @Cacheable("valid_countries")
+    @Cacheable(AppConstants.CACHE_COUNTRIES)
     public Set<String> getValidCountries() {
         log.info("Loading valid countries from database to cache...");
         return countryRepository.findAll().stream()
@@ -30,7 +31,7 @@ public class ReferenceDataCacheLoader {
                 .collect(Collectors.toSet());
     }
 
-    @Cacheable("valid_currencies")
+    @Cacheable(AppConstants.CACHE_CURRENCIES)
     public Set<String> getValidCurrencies() {
         log.info("Loading valid currencies from database to cache...");
         return currencyRepository.findAll().stream()
@@ -38,7 +39,7 @@ public class ReferenceDataCacheLoader {
                 .collect(Collectors.toSet());
     }
 
-    @Cacheable("valid_payment_methods")
+    @Cacheable(AppConstants.CACHE_PAYMENT_METHODS)
     public Set<String> getValidPaymentMethods() {
         log.info("Loading valid payment methods from database to cache...");
         return paymentMethodRepository.findAll().stream()
@@ -46,10 +47,10 @@ public class ReferenceDataCacheLoader {
                 .collect(Collectors.toSet());
     }
 
-    @Cacheable("card_payment_method_id")
+    @Cacheable(AppConstants.CACHE_CARD_PAYMENT_METHOD_ID)
     public String getCardPaymentMethodId() {
         log.info("Loading CARD payment method ID from database to cache...");
-        return paymentMethodRepository.findByCode("CARD")
+        return paymentMethodRepository.findByCode(AppConstants.PAYMENT_METHOD_CARD)
                 .map(entity -> entity.getId().toString())
                 .orElse("");
     }

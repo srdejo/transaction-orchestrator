@@ -79,6 +79,6 @@ class GetTransactionServiceTest {
 
         assertThatThrownBy(() -> getTransactionService.execute(nonExistingId))
             .isInstanceOf(TransactionNotFoundException.class)
-            .hasMessageContaining(nonExistingId);
+            .hasMessageContaining("error.003");
     }
 }

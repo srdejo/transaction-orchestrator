@@ -10,6 +10,7 @@ import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
+import com.tumipay.transaction_orchestrator.infrastructure.config.MessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,12 +30,18 @@ class TransactionMapperTest {
     private TransactionMapper mapper;
     private CustomerMapper customerMapper;
     private ObjectMapper objectMapper;
+    private MessageService messageService;
 
     @BeforeEach
     void setUp() {
         customerMapper = mock(CustomerMapper.class);
         objectMapper = new ObjectMapper();
-        mapper = new TransactionMapper(customerMapper, objectMapper);
+        messageService = mock(MessageService.class);
+        
+        when(messageService.getMessage("success.operation.code")).thenReturn("000");
+        when(messageService.getMessage("success.operation.message")).thenReturn("Successful operation");
+        
+        mapper = new TransactionMapper(customerMapper, objectMapper, messageService);
     }
 
     private Transaction buildDomainTransaction() {

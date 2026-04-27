@@ -3,6 +3,7 @@ package com.tumipay.transaction_orchestrator.infrastructure.adapters.out.provide
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.tumipay.transaction_orchestrator.domain.ports.out.PaymentProviderPort;
 import com.tumipay.transaction_orchestrator.domain.ports.out.ReferenceDataPort;
+import com.tumipay.transaction_orchestrator.infrastructure.util.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ public class SuccessfulHttpProviderAdapter implements PaymentProviderPort {
         log.info("[PROVEEDOR EXITOSO] Response HTTP 200 OK - Pago Aprobado");
         log.info("=====================================================");
 
-        transaction.updateProviderResponse("{\"status\": \"approved\", \"transaction_id\": \"PROV-SUCCESS-123\", \"message\": \"Payment successful\"}");
+        transaction.updateProviderResponse(AppConstants.MOCK_SUCCESS_RESPONSE);
         transaction.complete(); // Completa la transacción (cambia a SUCCESS)
         return transaction;
     }
