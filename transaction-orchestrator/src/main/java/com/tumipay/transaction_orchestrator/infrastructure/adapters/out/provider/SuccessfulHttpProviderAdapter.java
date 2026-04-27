@@ -32,7 +32,7 @@ public class SuccessfulHttpProviderAdapter implements PaymentProviderPort {
         log.info("=====================================================");
 
         transaction.updateProviderResponse("{\"status\": \"approved\", \"transaction_id\": \"PROV-SUCCESS-123\", \"message\": \"Payment successful\"}");
-        transaction.complete(); // Completa la transacción (cambia a COMPLETED)
+        transaction.complete(); // Completa la transacción (cambia a SUCCESS)
         return transaction;
     }
 }
