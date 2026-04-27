@@ -30,7 +30,7 @@ public class TransactionMapper {
             BigDecimal.valueOf(request.getAmount()),
             request.getCurrency(),
             request.getCountry(),
-            request.getPaymentMethodId(),
+            request.getPaymentMethodId() != null ? request.getPaymentMethodId().toString() : null,
             request.getWebhookUrl() != null ? request.getWebhookUrl().toString() : null,
             request.getReturnUrl() != null ? request.getReturnUrl().toString() : null,
             customerMapper.toCommand(request.getCustomer()),
