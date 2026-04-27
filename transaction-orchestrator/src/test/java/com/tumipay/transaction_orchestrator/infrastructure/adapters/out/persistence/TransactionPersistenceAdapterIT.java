@@ -2,6 +2,7 @@ package com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persist
 
 import com.tumipay.transaction_orchestrator.BaseIntegrationTest;
 import com.tumipay.transaction_orchestrator.TestFixtures;
+import com.tumipay.transaction_orchestrator.domain.model.PaymentMethod;
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persistence.adapter.TransactionPersistenceAdapter;
@@ -42,7 +43,7 @@ class TransactionPersistenceAdapterIT extends BaseIntegrationTest {
             transaction.getAmount(),
             transaction.getCurrency(),
             transaction.getCountryCode(),
-            new com.tumipay.transaction_orchestrator.domain.model.PaymentMethod(pmId),
+            new PaymentMethod(pmId),
             transaction.getWebhookUrl(),
             transaction.getRedirectUrl(),
             transaction.getCustomer(),

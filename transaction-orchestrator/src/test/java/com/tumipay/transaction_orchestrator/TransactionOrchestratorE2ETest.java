@@ -7,6 +7,7 @@ import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.domain.ports.out.PaymentProviderPort;
 import com.tumipay.transaction_orchestrator.domain.ports.out.TransactionRepositoryPort;
+import com.tumipay.transaction_orchestrator.util.TransactionTestData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -70,28 +71,12 @@ class TransactionOrchestratorE2ETest extends BaseIntegrationTest {
         return headers;
     }
 
-    private String buildCreateRequest(String clientTxId) {
-        return """
-            {
-                "client_transaction_id": "%s",
-                "amount": 10000,
-                "currency": "USD",
-                "country": "CO",
-                "payment_method_id": "550e8400-e29b-41d4-a716-446655440001",
-                "webhook_url": "https://webhook.example.com/notify",
-                "redirect_url": "https://app.example.com/return",
-                "customer": {
-                    "document_type": "CC",
-                    "document_number": "12345678",
-                    "country_calling_code": "+57",
-                    "phone_number": "3001234567",
-                    "email": "john.doe@example.com",
-                    "first_name": "John",
-                    "last_name": "Doe"
-                },
-                "description": "E2E Test payment"
-            }
-            """.formatted(clientTxId);
+    private String buildRequestJson(TransactionTestData.TransactionTestDataBuilder builder) {
+        try {
+            return objectMapper.writeValueAsString(builder.build().buildApiRequest());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Nested
@@ -111,7 +96,8 @@ class TransactionOrchestratorE2ETest extends BaseIntegrationTest {
             });
 
             String clientTxId = "E2E-TX-" + UUID.randomUUID();
-            HttpEntity<String> request = new HttpEntity<>(buildCreateRequest(clientTxId), jsonHeaders(null));
+            String body = buildRequestJson(TransactionTestData.defaultData().withClientTransactionId(clientTxId));
+            HttpEntity<String> request = new HttpEntity<>(body, jsonHeaders(null));
 
             // Act
             ResponseEntity<Map> response = restTemplate.exchange(
@@ -155,7 +141,8 @@ class TransactionOrchestratorE2ETest extends BaseIntegrationTest {
             });
 
             String clientTxId = "E2E-GET-" + UUID.randomUUID();
-            HttpEntity<String> createRequest = new HttpEntity<>(buildCreateRequest(clientTxId), jsonHeaders(null));
+            String body = buildRequestJson(TransactionTestData.defaultData().withClientTransactionId(clientTxId));
+            HttpEntity<String> createRequest = new HttpEntity<>(body, jsonHeaders(null));
             ResponseEntity<Map> createResponse = restTemplate.exchange(
                 baseUrl + "/transactions", HttpMethod.POST, createRequest, Map.class
             );
@@ -194,7 +181,7 @@ class TransactionOrchestratorE2ETest extends BaseIntegrationTest {
             });
 
             String clientTxId = "E2E-IDEM-" + UUID.randomUUID();
-            String requestBody = buildCreateRequest(clientTxId);
+            String requestBody = buildRequestJson(TransactionTestData.defaultData().withClientTransactionId(clientTxId));
             HttpEntity<String> request = new HttpEntity<>(requestBody, jsonHeaders(null));
 
             // First request — should succeed with 201
@@ -242,26 +229,9 @@ class TransactionOrchestratorE2ETest extends BaseIntegrationTest {
         @Test
         @DisplayName("POST with invalid country code — Returns 400 with code 001")
         void givenInvalidCountry_whenCreate_thenReturns400() {
-            String body = """
-                {
-                    "client_transaction_id": "E2E-INVALID-COUNTRY",
-                    "amount": 10000,
-                    "currency": "USD",
-                    "country": "INVALID_COUNTRY_XX",
-                    "payment_method_id": "550e8400-e29b-41d4-a716-446655440001",
-                    "webhook_url": "https://webhook.example.com/notify",
-                    "redirect_url": "https://app.example.com/return",
-                    "customer": {
-                        "document_type": "CC",
-                        "document_number": "12345678",
-                        "country_calling_code": "+57",
-                        "phone_number": "3001234567",
-                        "email": "john.doe@example.com",
-                        "first_name": "John",
-                        "last_name": "Doe"
-                    }
-                }
-                """;
+            String body = buildRequestJson(TransactionTestData.defaultData()
+                .withClientTransactionId("E2E-INVALID-COUNTRY")
+                .withCountry("INVALID_COUNTRY_XX"));
 
             HttpEntity<String> request = new HttpEntity<>(body, jsonHeaders(null));
             ResponseEntity<Map> response = restTemplate.exchange(
@@ -282,7 +252,8 @@ class TransactionOrchestratorE2ETest extends BaseIntegrationTest {
             );
 
             String clientTxId = "E2E-FAIL-" + UUID.randomUUID();
-            HttpEntity<String> request = new HttpEntity<>(buildCreateRequest(clientTxId), jsonHeaders(null));
+            String body = buildRequestJson(TransactionTestData.defaultData().withClientTransactionId(clientTxId));
+            HttpEntity<String> request = new HttpEntity<>(body, jsonHeaders(null));
 
             ResponseEntity<Map> response = restTemplate.exchange(
                 baseUrl + "/transactions", HttpMethod.POST, request, Map.class
