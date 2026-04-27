@@ -1,11 +1,12 @@
 package com.tumipay.transaction_orchestrator.infrastructure.adapters.out.persistence.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.util.UUID;
 
 @Entity

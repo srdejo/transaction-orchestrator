@@ -1,7 +1,8 @@
 package com.tumipay.transaction_orchestrator.domain.model;
 
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
+import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
+
 import java.time.LocalDateTime;
 
 public class Transaction {

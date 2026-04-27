@@ -35,8 +35,8 @@ public class TransactionMapper {
             request.getCurrency(),
             request.getCountry(),
             request.getPaymentMethodId() != null ? request.getPaymentMethodId().toString() : null,
-            request.getWebhookUrl() != null ? request.getWebhookUrl().toString() : null,
-            request.getReturnUrl() != null ? request.getReturnUrl().toString() : null,
+            request.getWebhookUrl() != null ? request.getWebhookUrl() : null,
+            request.getReturnUrl() != null ? request.getReturnUrl() : null,
             customerMapper.toCommand(request.getCustomer()),
             request.getDescription(),
             request.getExpirationTime() != null ? LocalDateTime.now().plusSeconds(request.getExpirationTime()) : null

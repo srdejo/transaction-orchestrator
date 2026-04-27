@@ -17,27 +17,31 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.tumipay.transaction_orchestrator.domain.ports.out.ReferenceDataPort;
+import static org.mockito.Mockito.*;
 
 @DisplayName("FailingHttpProviderAdapter Tests")
 class FailingHttpProviderAdapterTest {
 
     private FailingHttpProviderAdapter adapter;
+    private ReferenceDataPort referenceDataPort;
 
     @BeforeEach
     void setUp() {
-        adapter = new FailingHttpProviderAdapter();
+        referenceDataPort = mock(ReferenceDataPort.class);
+        adapter = new FailingHttpProviderAdapter(referenceDataPort);
     }
 
-    private Transaction buildTransaction(long amountCents, TransactionStatus status) {
+    private Transaction buildTransaction(String paymentMethodId, TransactionStatus status) {
         Customer customer = new Customer(
             DocumentType.CC, "12345678", "+57", "3001234567",
             "john.doe@example.com", "John", null, "Doe", null
         );
         return Transaction.reconstruct(
             UUID.randomUUID().toString(), "CLIENT-TX",
-            new Money(BigDecimal.valueOf(amountCents), new Currency("USD")),
+            new Money(BigDecimal.valueOf(10000), new Currency("USD")),
             new CountryCode("CO"),
-            new PaymentMethod(UUID.randomUUID().toString()),
+            new PaymentMethod(paymentMethodId),
             "https://webhook.example.com", "https://redirect.example.com",
             customer, "Test", null,
             status, LocalDateTime.now()
@@ -45,23 +49,29 @@ class FailingHttpProviderAdapterTest {
     }
 
     @Test
-    @DisplayName("Given amount ending in 99, when supports, then returns true")
-    void givenAmountEndingIn99_whenSupports_thenReturnsTrue() {
-        Transaction tx = buildTransaction(9999, TransactionStatus.PENDING);
+    @DisplayName("Given CARD payment method, when supports, then returns true")
+    void givenCardPaymentMethod_whenSupports_thenReturnsTrue() {
+        String cardId = "550e8400-e29b-41d4-a716-446655440001";
+        Transaction tx = buildTransaction(cardId, TransactionStatus.PENDING);
+        when(referenceDataPort.isCardPaymentMethod(cardId)).thenReturn(true);
+
         assertThat(adapter.supports(tx)).isTrue();
     }
 
     @Test
-    @DisplayName("Given amount NOT ending in 99, when supports, then returns false")
-    void givenAmountNotEndingIn99_whenSupports_thenReturnsFalse() {
-        Transaction tx = buildTransaction(10000, TransactionStatus.PENDING);
+    @DisplayName("Given non-CARD payment method, when supports, then returns false")
+    void givenNonCardPaymentMethod_whenSupports_thenReturnsFalse() {
+        String otherId = "550e8400-e29b-41d4-a716-446655440002";
+        Transaction tx = buildTransaction(otherId, TransactionStatus.PENDING);
+        when(referenceDataPort.isCardPaymentMethod(otherId)).thenReturn(false);
+
         assertThat(adapter.supports(tx)).isFalse();
     }
 
     @Test
     @DisplayName("Given PROCESSING transaction, when processPayment, then status is FAILED")
     void givenProcessingTransaction_whenProcessPayment_thenTransactionIsFailed() {
-        Transaction tx = buildTransaction(9999, TransactionStatus.PROCESSING);
+        Transaction tx = buildTransaction("550e8400-e29b-41d4-a716-446655440001", TransactionStatus.PROCESSING);
 
         Transaction result = adapter.processPayment(tx);
 

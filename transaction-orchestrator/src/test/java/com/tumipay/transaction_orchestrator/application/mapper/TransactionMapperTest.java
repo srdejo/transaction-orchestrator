@@ -1,15 +1,15 @@
 package com.tumipay.transaction_orchestrator.application.mapper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tumipay.transaction_orchestrator.application.ports.in.command.CreateTransactionCommand;
+import com.tumipay.transaction_orchestrator.domain.model.Customer;
+import com.tumipay.transaction_orchestrator.domain.model.PaymentMethod;
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
-import com.tumipay.transaction_orchestrator.domain.model.Customer;
-import com.tumipay.transaction_orchestrator.domain.model.PaymentMethod;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
