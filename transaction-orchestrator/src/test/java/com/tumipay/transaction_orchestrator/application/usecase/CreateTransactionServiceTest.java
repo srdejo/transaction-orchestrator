@@ -11,7 +11,6 @@ import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
 import com.tumipay.transaction_orchestrator.domain.ports.out.ReferenceDataPort;
 import com.tumipay.transaction_orchestrator.domain.ports.out.TransactionRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -57,7 +55,7 @@ class CreateTransactionServiceTest {
         );
         validCommand = new CreateTransactionCommand(
             "CLIENT-TX-001",
-            BigDecimal.valueOf(10000),
+            10000L,
             "USD",
             "CO",
             paymentMethodId,
@@ -74,11 +72,11 @@ class CreateTransactionServiceTest {
             DocumentType.CC, "12345678", "+57", "3001234567",
             "john.doe@example.com", "John", null, "Doe", null
         );
-        Money money = new Money(BigDecimal.valueOf(10000), new Currency("USD"));
+        Currency currency = new Currency("USD");
         CountryCode countryCode = new CountryCode("CO");
         PaymentMethod paymentMethod = new PaymentMethod(id);
         Transaction t = new Transaction(
-            "CLIENT-TX-001", money, countryCode, paymentMethod,
+            "CLIENT-TX-001", 10000L, currency, countryCode, paymentMethod,
             "https://webhook.example.com", "https://redirect.example.com",
             customer, "Test payment", null
         );

@@ -7,9 +7,6 @@ import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -38,7 +35,8 @@ public final class TestFixtures {
         return Transaction.reconstruct(
             txId,
             "CLIENT-TX-" + txId.substring(0, 8),
-            new Money(BigDecimal.valueOf(amountCents), new Currency("USD")),
+            amountCents,
+            new Currency("USD"),
             new CountryCode("CO"),
             new PaymentMethod(UUID.randomUUID().toString()),
             "https://webhook.example.com",

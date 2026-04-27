@@ -40,6 +40,7 @@ class TransactionPersistenceAdapterIT extends BaseIntegrationTest {
             transaction.getId(),
             transaction.getClientTransactionId(),
             transaction.getAmount(),
+            transaction.getCurrency(),
             transaction.getCountryCode(),
             new com.tumipay.transaction_orchestrator.domain.model.PaymentMethod(pmId),
             transaction.getWebhookUrl(),
@@ -61,7 +62,7 @@ class TransactionPersistenceAdapterIT extends BaseIntegrationTest {
         Optional<Transaction> found = adapter.findById(saved.getId());
         assertThat(found).isPresent();
         assertThat(found.get().getClientTransactionId()).isEqualTo(transaction.getClientTransactionId());
-        assertThat(found.get().getAmount().amount().longValue()).isEqualTo(15000);
+        assertThat(found.get().getAmount()).isEqualTo(15000);
     }
 
     @Test
@@ -72,6 +73,7 @@ class TransactionPersistenceAdapterIT extends BaseIntegrationTest {
         Transaction transaction = TestFixtures.buildTransaction(UUID.randomUUID().toString(), 20000, TransactionStatus.PENDING);
         transaction = Transaction.reconstruct(
             transaction.getId(), "UPDATE-TEST-001", transaction.getAmount(),
+            transaction.getCurrency(),
             transaction.getCountryCode(), new com.tumipay.transaction_orchestrator.domain.model.PaymentMethod(pmId),
             transaction.getWebhookUrl(), transaction.getRedirectUrl(), transaction.getCustomer(),
             transaction.getDescription(), null, TransactionStatus.PENDING, transaction.getCreatedAt()

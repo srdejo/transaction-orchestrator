@@ -1,11 +1,10 @@
 package com.tumipay.transaction_orchestrator.application.ports.in.command;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record CreateTransactionCommand(
     String clientTransactionId,
-    BigDecimal amount,
+    long amount,
     String currency,
     String countryCode,
     String paymentMethodId,

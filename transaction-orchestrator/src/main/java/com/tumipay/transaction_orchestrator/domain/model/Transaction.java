@@ -1,14 +1,15 @@
 package com.tumipay.transaction_orchestrator.domain.model;
 
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
+import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
 
 import java.time.LocalDateTime;
 
 public class Transaction {
     private String id;
     private final String clientTransactionId;
-    private final Money amount;
+    private final long amount;
+    private final Currency currency;
     private final CountryCode countryCode;
     private final PaymentMethod paymentMethod;
     private final String webhookUrl;
@@ -21,11 +22,12 @@ public class Transaction {
     private LocalDateTime createdAt;
     private String providerResponse;
 
-    public Transaction(String clientTransactionId, Money amount, CountryCode countryCode, 
+    public Transaction(String clientTransactionId, long amount, Currency currency, CountryCode countryCode, 
                        PaymentMethod paymentMethod, String webhookUrl, String redirectUrl, 
                        Customer customer, String description, LocalDateTime expirationTime) {
         if (clientTransactionId == null || clientTransactionId.isBlank()) throw new IllegalArgumentException("ClientTransactionId is required");
-        if (amount == null) throw new IllegalArgumentException("Amount is required");
+        if (amount <= 0) throw new IllegalArgumentException("Amount must be greater than zero");
+        if (currency == null) throw new IllegalArgumentException("Currency is required");
         if (countryCode == null) throw new IllegalArgumentException("CountryCode is required");
         if (paymentMethod == null) throw new IllegalArgumentException("PaymentMethod is required");
         if (webhookUrl == null || webhookUrl.isBlank()) throw new IllegalArgumentException("WebhookUrl is required");
@@ -34,6 +36,7 @@ public class Transaction {
 
         this.clientTransactionId = clientTransactionId;
         this.amount = amount;
+        this.currency = currency;
         this.countryCode = countryCode;
         this.paymentMethod = paymentMethod;
         this.webhookUrl = webhookUrl;
@@ -46,18 +49,18 @@ public class Transaction {
         this.createdAt = LocalDateTime.now();
     }
 
-    public static Transaction reconstruct(String id, String clientTransactionId, Money amount, CountryCode countryCode, 
-                                          PaymentMethod paymentMethod, String webhookUrl, String redirectUrl, 
-                                          Customer customer, String description, LocalDateTime expirationTime,
-                                          TransactionStatus status, LocalDateTime createdAt) {
-        return reconstruct(id, clientTransactionId, amount, countryCode, paymentMethod, webhookUrl, redirectUrl, customer, description, expirationTime, status, createdAt, null);
+    public static Transaction reconstruct(String id, String clientTransactionId, long amount, Currency currency, CountryCode countryCode, 
+                                           PaymentMethod paymentMethod, String webhookUrl, String redirectUrl, 
+                                           Customer customer, String description, LocalDateTime expirationTime,
+                                           TransactionStatus status, LocalDateTime createdAt) {
+        return reconstruct(id, clientTransactionId, amount, currency, countryCode, paymentMethod, webhookUrl, redirectUrl, customer, description, expirationTime, status, createdAt, null);
     }
 
-    public static Transaction reconstruct(String id, String clientTransactionId, Money amount, CountryCode countryCode, 
-                                          PaymentMethod paymentMethod, String webhookUrl, String redirectUrl, 
-                                          Customer customer, String description, LocalDateTime expirationTime,
-                                          TransactionStatus status, LocalDateTime createdAt, String providerResponse) {
-        Transaction t = new Transaction(clientTransactionId, amount, countryCode, paymentMethod, webhookUrl, redirectUrl, customer, description, expirationTime);
+    public static Transaction reconstruct(String id, String clientTransactionId, long amount, Currency currency, CountryCode countryCode, 
+                                           PaymentMethod paymentMethod, String webhookUrl, String redirectUrl, 
+                                           Customer customer, String description, LocalDateTime expirationTime,
+                                           TransactionStatus status, LocalDateTime createdAt, String providerResponse) {
+        Transaction t = new Transaction(clientTransactionId, amount, currency, countryCode, paymentMethod, webhookUrl, redirectUrl, customer, description, expirationTime);
         t.id = id;
         t.status = status;
         t.createdAt = createdAt;
@@ -103,7 +106,8 @@ public class Transaction {
 
     public String getId() { return id; }
     public String getClientTransactionId() { return clientTransactionId; }
-    public Money getAmount() { return amount; }
+    public long getAmount() { return amount; }
+    public Currency getCurrency() { return currency; }
     public CountryCode getCountryCode() { return countryCode; }
     public PaymentMethod getPaymentMethod() { return paymentMethod; }
     public String getWebhookUrl() { return webhookUrl; }

@@ -7,7 +7,6 @@ import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
 import com.tumipay.transaction_orchestrator.domain.ports.out.TransactionRepositoryPort;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.TransactionNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,7 +47,8 @@ class GetTransactionServiceTest {
         );
         existingTransaction = Transaction.reconstruct(
             existingId, "CLIENT-TX-001",
-            new Money(BigDecimal.valueOf(10000), new Currency("USD")),
+            10000L,
+            new Currency("USD"),
             new CountryCode("CO"),
             new PaymentMethod(UUID.randomUUID().toString()),
             "https://webhook.example.com", "https://redirect.example.com",
