@@ -102,7 +102,7 @@ components:
         - country
         - payment_method_id
         - webhook_url
-        - return_url
+        - redirect_url
         - customer
       properties:
         client_transaction_id:
@@ -132,7 +132,7 @@ components:
         webhook_url:
           type: string
           pattern: "^https?://.+"
-        return_url:
+        redirect_url:
           type: string
           pattern: "^https?://.+"
         description:
@@ -148,7 +148,7 @@ components:
       required:
         - document_type
         - document_number
-        - phone_code
+        - country_calling_code
         - phone_number
         - email
         - first_name
@@ -164,7 +164,7 @@ components:
           minLength: 1
           maxLength: 50
           example: "123456789"
-        phone_code:
+        country_calling_code:
           type: string
           pattern: '^\+?\d+$'
           example: "57"
@@ -179,7 +179,7 @@ components:
           type: string
           minLength: 1
           maxLength: 100
-        second_name:
+        middle_name:
           type: string
         last_name:
           type: string
@@ -252,6 +252,10 @@ components:
         created_at:
           type: string
           format: date-time
+        processed_at:
+          type: string
+          format: date-time
+          nullable: true
         provider_response:
           type: object
           description: Provider response JSON
@@ -265,4 +269,4 @@ components:
         - PENDING
         - PROCESSING
         - SUCCESS
-        - FAILED
+        - FAILED

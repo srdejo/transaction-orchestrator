@@ -38,7 +38,7 @@ public class TransactionMapper {
             request.getCountry(),
             request.getPaymentMethodId() != null ? request.getPaymentMethodId().toString() : null,
             request.getWebhookUrl() != null ? request.getWebhookUrl() : null,
-            request.getReturnUrl() != null ? request.getReturnUrl() : null,
+            request.getRedirectUrl() != null ? request.getRedirectUrl() : null,
             customerMapper.toCommand(request.getCustomer()),
             request.getDescription(),
             request.getExpirationTime() != null ? LocalDateTime.now().plusSeconds(request.getExpirationTime()) : null
@@ -56,7 +56,8 @@ public class TransactionMapper {
             .country(transaction.getCountryCode().value())
             .description(transaction.getDescription())
             .status(TransactionStatus.fromValue(transaction.getStatus().name()))
-            .createdAt(transaction.getCreatedAt().atOffset(ZoneOffset.UTC));
+            .createdAt(transaction.getCreatedAt().atOffset(ZoneOffset.UTC))
+            .processedAt(transaction.getProcessedAt() != null ? transaction.getProcessedAt().atOffset(ZoneOffset.UTC) : null);
 
         if (transaction.getProviderResponse() != null) {
             try {

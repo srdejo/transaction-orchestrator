@@ -20,6 +20,7 @@ public class Transaction {
     
     private TransactionStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime processedAt;
     private String providerResponse;
 
     public Transaction(String clientTransactionId, long amount, Currency currency, CountryCode countryCode, 
@@ -53,18 +54,26 @@ public class Transaction {
                                            PaymentMethod paymentMethod, String webhookUrl, String redirectUrl, 
                                            Customer customer, String description, LocalDateTime expirationTime,
                                            TransactionStatus status, LocalDateTime createdAt) {
-        return reconstruct(id, clientTransactionId, amount, currency, countryCode, paymentMethod, webhookUrl, redirectUrl, customer, description, expirationTime, status, createdAt, null);
+        return reconstruct(id, clientTransactionId, amount, currency, countryCode, paymentMethod, webhookUrl, redirectUrl, customer, description, expirationTime, status, createdAt, null, null);
     }
 
     public static Transaction reconstruct(String id, String clientTransactionId, long amount, Currency currency, CountryCode countryCode, 
                                            PaymentMethod paymentMethod, String webhookUrl, String redirectUrl, 
                                            Customer customer, String description, LocalDateTime expirationTime,
                                            TransactionStatus status, LocalDateTime createdAt, String providerResponse) {
+        return reconstruct(id, clientTransactionId, amount, currency, countryCode, paymentMethod, webhookUrl, redirectUrl, customer, description, expirationTime, status, createdAt, providerResponse, null);
+    }
+
+    public static Transaction reconstruct(String id, String clientTransactionId, long amount, Currency currency, CountryCode countryCode, 
+                                           PaymentMethod paymentMethod, String webhookUrl, String redirectUrl, 
+                                           Customer customer, String description, LocalDateTime expirationTime,
+                                           TransactionStatus status, LocalDateTime createdAt, String providerResponse, LocalDateTime processedAt) {
         Transaction t = new Transaction(clientTransactionId, amount, currency, countryCode, paymentMethod, webhookUrl, redirectUrl, customer, description, expirationTime);
         t.id = id;
         t.status = status;
         t.createdAt = createdAt;
         t.providerResponse = providerResponse;
+        t.processedAt = processedAt;
         return t;
     }
 
@@ -87,10 +96,12 @@ public class Transaction {
             throw new IllegalStateException("Only PROCESSING transactions can be completed");
         }
         this.status = TransactionStatus.SUCCESS;
+        this.processedAt = LocalDateTime.now();
     }
 
     public void fail() {
         this.status = TransactionStatus.FAILED;
+        this.processedAt = LocalDateTime.now();
     }
     
     public void cancel() {
@@ -98,6 +109,7 @@ public class Transaction {
             throw new IllegalStateException("SUCCESS transactions cannot be cancelled");
         }
         this.status = TransactionStatus.CANCELLED;
+        this.processedAt = LocalDateTime.now();
     }
 
     public void updateProviderResponse(String providerResponse) {
@@ -117,5 +129,6 @@ public class Transaction {
     public LocalDateTime getExpirationTime() { return expirationTime; }
     public TransactionStatus getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getProcessedAt() { return processedAt; }
     public String getProviderResponse() { return providerResponse; }
 }

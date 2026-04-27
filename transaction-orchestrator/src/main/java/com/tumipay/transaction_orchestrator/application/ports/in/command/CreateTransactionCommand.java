@@ -17,8 +17,8 @@ public record CreateTransactionCommand(
     public record CustomerCommand(
         String documentType,
         String documentNumber,
-        String countryCallCode,
-        String phone,
+        String countryCallingCode,
+        String phoneNumber,
         String email,
         String firstName,
         String middleName,

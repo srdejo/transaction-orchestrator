@@ -78,6 +78,8 @@ class TransactionMapperTest {
     @DisplayName("Given a domain Transaction, when toResponse, then data contains correct transaction fields")
     void givenDomainTransaction_whenToResponse_thenDataHasCorrectFields() {
         Transaction transaction = buildDomainTransaction();
+        transaction.process();
+        transaction.complete(); // This sets processedAt
 
         var response = mapper.toResponse(transaction);
         var data = response.getData();
@@ -87,6 +89,7 @@ class TransactionMapperTest {
         assertThat(data.getCurrency()).isEqualTo("USD");
         assertThat(data.getCountry()).isEqualTo("CO");
         assertThat(data.getAmount()).isEqualTo(10000);
+        assertThat(data.getProcessedAt()).isNotNull();
     }
 
 

@@ -132,11 +132,11 @@ class TransactionControllerTest {
                 "country": "CO",
                 "payment_method_id": "%s",
                 "webhook_url": "https://webhook.example.com/notify",
-                "return_url": "https://app.example.com/return",
+                "redirect_url": "https://app.example.com/return",
                 "customer": {
                     "document_type": "CC",
                     "document_number": "12345678",
-                    "phone_code": "+57",
+                    "country_calling_code": "+57",
                     "phone_number": "3001234567",
                     "email": "john.doe@example.com",
                     "first_name": "John",

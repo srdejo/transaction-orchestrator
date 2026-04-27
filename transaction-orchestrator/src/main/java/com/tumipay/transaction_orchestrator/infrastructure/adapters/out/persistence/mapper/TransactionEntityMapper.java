@@ -46,6 +46,7 @@ public class TransactionEntityMapper {
         entity.setDescription(domain.getDescription());
         entity.setStatus(domain.getStatus());
         entity.setCreatedAt(domain.getCreatedAt());
+        entity.setProcessedAt(domain.getProcessedAt());
         entity.setExpirationTime(domain.getExpirationTime());
         entity.setCustomer(customerMapper.toEntity(domain.getCustomer()));
         entity.setProviderResponse(domain.getProviderResponse());
@@ -71,6 +72,7 @@ public class TransactionEntityMapper {
                 entity.getExpirationTime(),
                 entity.getStatus(),
                 entity.getCreatedAt(),
-                entity.getProviderResponse());
+                entity.getProviderResponse(),
+                entity.getProcessedAt());
     }
 }

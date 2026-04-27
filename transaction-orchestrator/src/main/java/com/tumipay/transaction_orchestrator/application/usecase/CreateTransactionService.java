@@ -56,8 +56,8 @@ public class CreateTransactionService implements CreateTransactionUseCase {
         Customer customer = new Customer(
                 DocumentType.valueOf(command.customer().documentType()),
                 command.customer().documentNumber(),
-                command.customer().countryCallCode(),
-                command.customer().phone(),
+                command.customer().countryCallingCode(),
+                command.customer().phoneNumber(),
                 command.customer().email(),
                 command.customer().firstName(),
                 command.customer().middleName(),
