@@ -31,6 +31,7 @@ public class FailingHttpProviderAdapter implements PaymentProviderPort {
         log.error("[PROVEEDOR FALLIDO] Response HTTP 400 Bad Request - Fondos Insuficientes");
         log.info("=====================================================");
 
+        transaction.updateProviderResponse("{\"error\": \"insufficient_funds\", \"error_code\": \"105\", \"message\": \"The customer has insufficient funds\"}");
         transaction.fail(); // Falla la transacción (cambia a FAILED)
         return transaction;
     }

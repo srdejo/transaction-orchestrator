@@ -8,20 +8,26 @@ import com.tumipay.transaction_orchestrator.api.model.UpdateTransactionRequest;
 import com.tumipay.transaction_orchestrator.application.ports.in.command.CreateTransactionCommand;
 import com.tumipay.transaction_orchestrator.application.ports.in.command.UpdateTransactionCommand;
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
+@Slf4j
 @Component
 public class TransactionMapper {
 
     private final CustomerMapper customerMapper;
+    private final ObjectMapper objectMapper;
 
-    public TransactionMapper(CustomerMapper customerMapper) {
+    public TransactionMapper(CustomerMapper customerMapper, ObjectMapper objectMapper) {
         this.customerMapper = customerMapper;
+        this.objectMapper = objectMapper;
     }
 
     public CreateTransactionCommand toCommand(CreateTransactionRequest request) {
@@ -58,6 +64,14 @@ public class TransactionMapper {
             .description(transaction.getDescription())
             .status(TransactionStatus.fromValue(transaction.getStatus().name()))
             .createdAt(transaction.getCreatedAt().atOffset(ZoneOffset.UTC));
+
+        if (transaction.getProviderResponse() != null) {
+            try {
+                data.providerResponse(objectMapper.readValue(transaction.getProviderResponse(), Object.class));
+            } catch (JsonProcessingException e) {
+                log.error("Error parsing provider response for transaction {}: {}", transaction.getId(), e.getMessage());
+            }
+        }
 
         TransactionResponseWrapper response = new TransactionResponseWrapper();
         response.setCode("000");

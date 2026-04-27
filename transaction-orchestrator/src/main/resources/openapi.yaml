@@ -317,6 +317,9 @@ components:
         created_at:
           type: string
           format: date-time
+        provider_response:
+          type: object
+          description: Provider response JSON
 
     # =========================
     # ENUMS

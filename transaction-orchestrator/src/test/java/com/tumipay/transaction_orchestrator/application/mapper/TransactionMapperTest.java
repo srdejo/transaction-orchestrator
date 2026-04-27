@@ -10,6 +10,7 @@ import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentTyp
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.Money;
 import com.tumipay.transaction_orchestrator.domain.model.Customer;
 import com.tumipay.transaction_orchestrator.domain.model.PaymentMethod;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,11 +29,13 @@ class TransactionMapperTest {
 
     private TransactionMapper mapper;
     private CustomerMapper customerMapper;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
         customerMapper = mock(CustomerMapper.class);
-        mapper = new TransactionMapper(customerMapper);
+        objectMapper = new ObjectMapper();
+        mapper = new TransactionMapper(customerMapper, objectMapper);
     }
 
     private Transaction buildDomainTransaction() {

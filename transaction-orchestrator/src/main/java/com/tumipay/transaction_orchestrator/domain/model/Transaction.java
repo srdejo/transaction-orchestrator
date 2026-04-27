@@ -18,6 +18,7 @@ public class Transaction {
     
     private TransactionStatus status;
     private LocalDateTime createdAt;
+    private String providerResponse;
 
     public Transaction(String clientTransactionId, Money amount, CountryCode countryCode, 
                        PaymentMethod paymentMethod, String webhookUrl, String redirectUrl, 
@@ -48,10 +49,18 @@ public class Transaction {
                                           PaymentMethod paymentMethod, String webhookUrl, String redirectUrl, 
                                           Customer customer, String description, LocalDateTime expirationTime,
                                           TransactionStatus status, LocalDateTime createdAt) {
+        return reconstruct(id, clientTransactionId, amount, countryCode, paymentMethod, webhookUrl, redirectUrl, customer, description, expirationTime, status, createdAt, null);
+    }
+
+    public static Transaction reconstruct(String id, String clientTransactionId, Money amount, CountryCode countryCode, 
+                                          PaymentMethod paymentMethod, String webhookUrl, String redirectUrl, 
+                                          Customer customer, String description, LocalDateTime expirationTime,
+                                          TransactionStatus status, LocalDateTime createdAt, String providerResponse) {
         Transaction t = new Transaction(clientTransactionId, amount, countryCode, paymentMethod, webhookUrl, redirectUrl, customer, description, expirationTime);
         t.id = id;
         t.status = status;
         t.createdAt = createdAt;
+        t.providerResponse = providerResponse;
         return t;
     }
 
@@ -87,6 +96,10 @@ public class Transaction {
         this.status = TransactionStatus.CANCELLED;
     }
 
+    public void updateProviderResponse(String providerResponse) {
+        this.providerResponse = providerResponse;
+    }
+
     public String getId() { return id; }
     public String getClientTransactionId() { return clientTransactionId; }
     public Money getAmount() { return amount; }
@@ -99,4 +112,5 @@ public class Transaction {
     public LocalDateTime getExpirationTime() { return expirationTime; }
     public TransactionStatus getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public String getProviderResponse() { return providerResponse; }
 }
