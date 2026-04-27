@@ -1,21 +1,14 @@
 package com.tumipay.transaction_orchestrator.application.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest;
 import com.tumipay.transaction_orchestrator.application.ports.in.command.CreateTransactionCommand;
-import com.tumipay.transaction_orchestrator.domain.model.Customer;
-import com.tumipay.transaction_orchestrator.domain.model.PaymentMethod;
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
-import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
 import com.tumipay.transaction_orchestrator.infrastructure.config.MessageService;
+import com.tumipay.transaction_orchestrator.util.TransactionTestData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,22 +36,7 @@ class TransactionMapperTest {
     }
 
     private Transaction buildDomainTransaction() {
-        Customer customer = new Customer(
-            DocumentType.CC, "12345678", "+57", "3001234567",
-            "john.doe@example.com", "John", null, "Doe", null
-        );
-        String txId = UUID.randomUUID().toString();
-        String pmId = UUID.randomUUID().toString();
-        return Transaction.reconstruct(
-            txId, "CLIENT-TX-001",
-            10000L,
-            new Currency("USD"),
-            new CountryCode("CO"),
-            new PaymentMethod(pmId),
-            "https://webhook.example.com", "https://redirect.example.com",
-            customer, "Test payment", null,
-            TransactionStatus.PENDING, LocalDateTime.now()
-        );
+        return TransactionTestData.defaultData().build().buildDomainTransaction();
     }
 
     @Test
@@ -101,20 +79,15 @@ class TransactionMapperTest {
                 "john@test.com", "John", null, "Doe", null)
         );
 
-        com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest request =
-            new com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest();
-        request.setClientTransactionId("CLIENT-TX-001");
-        request.setAmount(100);
-        request.setCurrency("USD");
-        request.setCountry("CO");
-        request.setCustomer(new com.tumipay.transaction_orchestrator.api.model.Customer());
+        CreateTransactionRequest request =
+            TransactionTestData.defaultData().build().buildApiRequest();
 
         CreateTransactionCommand cmd = mapper.toCommand(request);
 
         assertThat(cmd.clientTransactionId()).isEqualTo("CLIENT-TX-001");
         assertThat(cmd.currency()).isEqualTo("USD");
         assertThat(cmd.countryCode()).isEqualTo("CO");
-        assertThat(cmd.amount()).isEqualTo(100L);
+        assertThat(cmd.amount()).isEqualTo(10000L);
         assertThat(cmd.customer()).isNotNull();
     }
 }

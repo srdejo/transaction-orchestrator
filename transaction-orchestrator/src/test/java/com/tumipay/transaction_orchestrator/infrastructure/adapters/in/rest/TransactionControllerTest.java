@@ -2,24 +2,21 @@ package com.tumipay.transaction_orchestrator.infrastructure.adapters.in.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest;
 import com.tumipay.transaction_orchestrator.api.model.TransactionData;
 import com.tumipay.transaction_orchestrator.api.model.TransactionResponseWrapper;
+import com.tumipay.transaction_orchestrator.api.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.application.mapper.TransactionMapper;
 import com.tumipay.transaction_orchestrator.application.ports.in.CreateTransactionUseCase;
 import com.tumipay.transaction_orchestrator.application.ports.in.GetTransactionUseCase;
 import com.tumipay.transaction_orchestrator.domain.exception.BusinessException;
 import com.tumipay.transaction_orchestrator.domain.exception.ErrorCode;
-import com.tumipay.transaction_orchestrator.domain.model.Customer;
-import com.tumipay.transaction_orchestrator.domain.model.PaymentMethod;
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
-import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
+import com.tumipay.transaction_orchestrator.infrastructure.config.MessageService;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.GlobalExceptionHandler;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.TransactionNotFoundException;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.ValidationErrorMapper;
-import com.tumipay.transaction_orchestrator.infrastructure.config.MessageService;
+import com.tumipay.transaction_orchestrator.util.TransactionTestData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -32,7 +29,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
@@ -72,20 +68,11 @@ class TransactionControllerTest {
         objectMapper.registerModule(new org.openapitools.jackson.nullable.JsonNullableModule());
 
         sampleTxId = UUID.randomUUID().toString();
-        Customer customer = new Customer(
-            DocumentType.CC, "12345678", "+57", "3001234567",
-            "john.doe@example.com", "John", null, "Doe", null
-        );
-        sampleTransaction = Transaction.reconstruct(
-            sampleTxId, "CLIENT-TX-001",
-            10000L,
-            new Currency("USD"),
-            new CountryCode("CO"),
-            new PaymentMethod(UUID.randomUUID().toString()),
-            "https://webhook.example.com", "https://redirect.example.com",
-            customer, "Test payment", (LocalDateTime) null,
-            TransactionStatus.PENDING, LocalDateTime.now(), null
-        );
+        
+        sampleTransaction = TransactionTestData.defaultData()
+            .withClientTransactionId("CLIENT-TX-001")
+            .build()
+            .buildDomainTransaction(sampleTxId);
 
         TransactionData data =
             new TransactionData()
@@ -94,7 +81,7 @@ class TransactionControllerTest {
                 .amount(10000)
                 .currency("USD")
                 .country("CO")
-                .status(com.tumipay.transaction_orchestrator.api.model.TransactionStatus.PENDING)
+                .status(TransactionStatus.PENDING)
                 .createdAt(java.time.OffsetDateTime.now());
 
         sampleResponse = new TransactionResponseWrapper();
@@ -123,28 +110,8 @@ class TransactionControllerTest {
         });
     }
 
-    private String buildValidCreateRequest(String clientTxId) {
-        return """
-            {
-                "client_transaction_id": "%s",
-                "amount": 10000,
-                "currency": "USD",
-                "country": "CO",
-                "payment_method_id": "%s",
-                "webhook_url": "https://webhook.example.com/notify",
-                "redirect_url": "https://app.example.com/return",
-                "customer": {
-                    "document_type": "CC",
-                    "document_number": "12345678",
-                    "country_calling_code": "+57",
-                    "phone_number": "3001234567",
-                    "email": "john.doe@example.com",
-                    "first_name": "John",
-                    "last_name": "Doe"
-                },
-                "description": "Test payment"
-            }
-            """.formatted(clientTxId, UUID.randomUUID());
+    private String buildRequestJson(TransactionTestData.TransactionTestDataBuilder builder) throws Exception {
+        return objectMapper.writeValueAsString(builder.build().buildApiRequest());
     }
 
     @Nested
@@ -160,7 +127,7 @@ class TransactionControllerTest {
 
             mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(buildValidCreateRequest("CLIENT-TX-001")))
+                    .content(buildRequestJson(TransactionTestData.defaultData())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.code").value("000"))
                 .andExpect(jsonPath("$.message").value("Successful operation"))
@@ -170,13 +137,13 @@ class TransactionControllerTest {
         @Test
         @DisplayName("Given invalid country, when create, then returns 400 with INVALID_COUNTRY error code")
         void givenInvalidCountry_whenCreate_thenReturns400WithInvalidCountryCode() throws Exception {
-            when(mapper.toCommand(any(com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest.class))).thenReturn(null);
+            when(mapper.toCommand(any(CreateTransactionRequest.class))).thenReturn(null);
             when(createUseCase.execute(any()))
                 .thenThrow(new BusinessException(ErrorCode.INVALID_COUNTRY, "error.001.detail", "XX"));
 
             mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(buildValidCreateRequest("CLIENT-TX-002")))
+                    .content(buildRequestJson(TransactionTestData.defaultData().withClientTransactionId("CLIENT-TX-002"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("001"))
                 .andExpect(jsonPath("$.message").value(containsString("Invalid country code")));
@@ -185,13 +152,13 @@ class TransactionControllerTest {
         @Test
         @DisplayName("Given invalid currency, when create, then returns 400 with INVALID_CURRENCY error code")
         void givenInvalidCurrency_whenCreate_thenReturns400WithInvalidCurrencyCode() throws Exception {
-            when(mapper.toCommand(any(com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest.class))).thenReturn(null);
+            when(mapper.toCommand(any(CreateTransactionRequest.class))).thenReturn(null);
             when(createUseCase.execute(any()))
                 .thenThrow(new BusinessException(ErrorCode.INVALID_CURRENCY, "error.002.detail", "XXX"));
 
             mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(buildValidCreateRequest("CLIENT-TX-003")))
+                    .content(buildRequestJson(TransactionTestData.defaultData().withClientTransactionId("CLIENT-TX-003"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("002"));
         }
@@ -199,13 +166,13 @@ class TransactionControllerTest {
         @Test
         @DisplayName("Given duplicate clientTransactionId (DB violation), when create, then returns 409 with DUPLICATE_TRANSACTION code")
         void givenDuplicateClientTransactionId_whenCreate_thenReturns409() throws Exception {
-            when(mapper.toCommand(any(com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest.class))).thenReturn(null);
+            when(mapper.toCommand(any(CreateTransactionRequest.class))).thenReturn(null);
             when(createUseCase.execute(any()))
                 .thenThrow(new DataIntegrityViolationException("ux_transactions_customer_transaction_id violation"));
 
             mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(buildValidCreateRequest("CLIENT-TX-DUPLICATE")))
+                    .content(buildRequestJson(TransactionTestData.defaultData().withClientTransactionId("CLIENT-TX-DUPLICATE"))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("409"))
                 .andExpect(jsonPath("$.message").value(containsString("already exists")));
@@ -214,13 +181,13 @@ class TransactionControllerTest {
         @Test
         @DisplayName("Given invalid payment method, when create, then returns 400 with INVALID_PAYMENT_METHOD code")
         void givenInvalidPaymentMethod_whenCreate_thenReturns400WithCode004() throws Exception {
-            when(mapper.toCommand(any(com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest.class))).thenReturn(null);
+            when(mapper.toCommand(any(CreateTransactionRequest.class))).thenReturn(null);
             when(createUseCase.execute(any()))
                 .thenThrow(new BusinessException(ErrorCode.INVALID_PAYMENT_METHOD, "error.004.detail", "PM-ID"));
 
             mockMvc.perform(post("/api/v1/transactions")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(buildValidCreateRequest("CLIENT-TX-004")))
+                    .content(buildRequestJson(TransactionTestData.defaultData().withClientTransactionId("CLIENT-TX-004"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("004"));
         }

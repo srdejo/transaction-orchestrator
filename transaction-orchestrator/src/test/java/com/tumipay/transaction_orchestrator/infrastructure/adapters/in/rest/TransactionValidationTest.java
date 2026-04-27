@@ -6,6 +6,9 @@ import com.tumipay.transaction_orchestrator.application.ports.in.GetTransactionU
 import com.tumipay.transaction_orchestrator.infrastructure.config.MessageService;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.GlobalExceptionHandler;
 import com.tumipay.transaction_orchestrator.infrastructure.exception.ValidationErrorMapper;
+import com.tumipay.transaction_orchestrator.util.TransactionTestData;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,81 +38,55 @@ class TransactionValidationTest {
     @MockitoBean
     private MessageService messageService;
 
+    private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setUp() {
+        objectMapper = new ObjectMapper();
+    }
+
     @Test
     @DisplayName("Given amount as string, when create, then returns 400 Bad Request due to strict type checking")
     void givenAmountAsString_whenCreate_thenReturns400() throws Exception {
-        String request = """
-            {
-                "client_transaction_id": "TX-STRING",
-                "amount": "10000",
-                "currency": "USD",
-                "country": "CO",
-                "payment_method_id": "550e8400-e29b-41d4-a716-446655440001",
-                "customer": {
-                    "document_type": "CC",
-                    "document_number": "12345678",
-                    "email": "test@test.com",
-                    "first_name": "John",
-                    "last_name": "Doe"
-                }
-            }
-            """;
+        java.util.Map<String, Object> requestMap = TransactionTestData.defaultData()
+            .withClientTransactionId("TX-STRING")
+            .build()
+            .buildApiRequestMap();
+        requestMap.put("amount", "10000");
 
         mockMvc.perform(post("/api/v1/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                .content(objectMapper.writeValueAsString(requestMap)))
             .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("Given amount with thousands separator, when create, then returns 400 Bad Request")
     void givenAmountWithThousandsSeparator_whenCreate_thenReturns400() throws Exception {
-        String request = """
-            {
-                "client_transaction_id": "TX-SEPARATOR",
-                "amount": "1,000",
-                "currency": "USD",
-                "country": "CO",
-                "payment_method_id": "550e8400-e29b-41d4-a716-446655440001",
-                "customer": {
-                    "document_type": "CC",
-                    "document_number": "12345678",
-                    "email": "test@test.com",
-                    "first_name": "John",
-                    "last_name": "Doe"
-                }
-            }
-            """;
+        java.util.Map<String, Object> requestMap = TransactionTestData.defaultData()
+            .withClientTransactionId("TX-SEPARATOR")
+            .build()
+            .buildApiRequestMap();
+        requestMap.put("amount", "1,000");
 
         mockMvc.perform(post("/api/v1/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                .content(objectMapper.writeValueAsString(requestMap)))
             .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("Given amount as decimal, when create, then returns 400 Bad Request")
     void givenAmountAsDecimal_whenCreate_thenReturns400() throws Exception {
-        String request = """
-            {
-                "client_transaction_id": "TX-DECIMAL",
-                "amount": 100.50,
-                "currency": "USD",
-                "country": "CO",
-                "payment_method_id": "550e8400-e29b-41d4-a716-446655440001",
-                "customer": {
-                    "document_type": "CC",
-                    "document_number": "12345678",
-                    "email": "test@test.com",
-                    "first_name": "John",
-                    "last_name": "Doe"
-                }
-            }
-            """;
+        java.util.Map<String, Object> requestMap = TransactionTestData.defaultData()
+            .withClientTransactionId("TX-DECIMAL")
+            .build()
+            .buildApiRequestMap();
+        requestMap.put("amount", "100.50");
 
         mockMvc.perform(post("/api/v1/transactions")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
+                .content(objectMapper.writeValueAsString(requestMap)))
             .andExpect(status().isBadRequest());
     }
 }

@@ -4,15 +4,11 @@ import com.tumipay.transaction_orchestrator.application.ports.in.command.CreateT
 import com.tumipay.transaction_orchestrator.application.service.AsyncPaymentProcessor;
 import com.tumipay.transaction_orchestrator.domain.exception.BusinessException;
 import com.tumipay.transaction_orchestrator.domain.exception.ErrorCode;
-import com.tumipay.transaction_orchestrator.domain.model.Customer;
-import com.tumipay.transaction_orchestrator.domain.model.PaymentMethod;
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.Currency;
-import com.tumipay.transaction_orchestrator.domain.model.valueobject.DocumentType;
 import com.tumipay.transaction_orchestrator.domain.ports.out.ReferenceDataPort;
 import com.tumipay.transaction_orchestrator.domain.ports.out.TransactionRepositoryPort;
+import com.tumipay.transaction_orchestrator.util.TransactionTestData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,9 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -48,40 +41,14 @@ class CreateTransactionServiceTest {
 
     @BeforeEach
     void setUp() {
-        String paymentMethodId = UUID.randomUUID().toString();
-        CreateTransactionCommand.CustomerCommand customerCmd = new CreateTransactionCommand.CustomerCommand(
-            "CC", "12345678", "+57", "3001234567",
-            "john.doe@example.com", "John", null, "Doe", null
-        );
-        validCommand = new CreateTransactionCommand(
-            "CLIENT-TX-001",
-            10000L,
-            "USD",
-            "CO",
-            paymentMethodId,
-            "https://webhook.example.com",
-            "https://redirect.example.com",
-            customerCmd,
-            "Test payment",
-            LocalDateTime.now().plusHours(1)
-        );
+        validCommand = TransactionTestData.defaultData().build().buildCommand();
     }
 
     private Transaction buildSavedTransaction(String id) {
-        Customer customer = new Customer(
-            DocumentType.CC, "12345678", "+57", "3001234567",
-            "john.doe@example.com", "John", null, "Doe", null
-        );
-        Currency currency = new Currency("USD");
-        CountryCode countryCode = new CountryCode("CO");
-        PaymentMethod paymentMethod = new PaymentMethod(id);
-        Transaction t = new Transaction(
-            "CLIENT-TX-001", 10000L, currency, countryCode, paymentMethod,
-            "https://webhook.example.com", "https://redirect.example.com",
-            customer, "Test payment", null
-        );
-        t.assignId(UUID.randomUUID().toString());
-        return t;
+        return TransactionTestData.defaultData()
+            .withPaymentMethodId(id)
+            .build()
+            .buildDomainTransaction();
     }
 
     @Nested

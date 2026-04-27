@@ -27,3 +27,7 @@ Implementado mediante **Programación Orientada a Aspectos (AOP)**. Se utiliza u
 ## Repository Pattern
 
 Abstrae la persistencia de datos mediante Spring Data JPA, permitiendo al dominio interactuar con la base de datos sin conocer los detalles de implementación SQL.
+
+## Builder Pattern (Test Data Builders)
+
+Implementado para la generación de datos de prueba centralizada y fluida (`TransactionTestData`). Permite construir objetos complejos (Requests, Domain Models, Commands) con valores por defecto consistentes, reduciendo la duplicación de código en los tests y mejorando su legibilidad.
