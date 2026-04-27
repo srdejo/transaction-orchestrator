@@ -2,28 +2,28 @@
 
 ## Hexagonal Architecture (Ports & Adapters)
 
-Aísla el dominio de dependencias externas mediante puertos y adaptadores.
+Aísla el dominio de dependencias externas mediante puertos y adaptadores, facilitando la evolución independiente y el testing.
 
 ## Dependency Injection
 
-Gestionado por Spring para desacoplar componentes.
+Gestionado por Spring Framework para desacoplar la creación de objetos de su uso, mejorando la mantenibilidad.
 
 ## Strategy Pattern
 
-Permite seleccionar dinámicamente el proveedor de pago.
+Implementado para seleccionar dinámicamente el proveedor de pago adecuado según el método de pago o configuración.
 
 ## Factory Pattern
 
-Encapsula la creación de proveedores de pago.
+Encapsula la lógica de instanciación de los adaptadores de proveedores de pago (`PaymentProviderFactory`).
 
 ## Adapter Pattern
 
-Integra APIs externas (proveedores) al modelo interno.
+Permite que el sistema interactúe con APIs de terceros (Stripe, PayPal, etc.) traduciendo sus interfaces a un modelo interno común (`PaymentProviderPort`).
 
-## Idempotency Pattern
+## Idempotency Pattern (AOP)
 
-Garantiza operaciones seguras ante reintentos mediante keys + cache.
+Implementado mediante **Programación Orientada a Aspectos (AOP)**. Se utiliza un interceptor (`IdempotencyAspect`) que rodea la ejecución de los controladores para verificar y persistir estados de transacciones en Redis.
 
 ## Repository Pattern
 
-Abstrae el acceso a datos del dominio.
+Abstrae la persistencia de datos mediante Spring Data JPA, permitiendo al dominio interactuar con la base de datos sin conocer los detalles de implementación SQL.

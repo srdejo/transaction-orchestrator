@@ -1,34 +1,17 @@
 # ADR-0001: Arquitectura Hexagonal
 
-## Status
-Accepted
+**Date:** 2026-04-27
+**Status:** Accepted
 
 ## Context
-
-Se requiere desacoplar la lógica de negocio de frameworks y facilitar la integración con múltiples proveedores.
+Se requiere desacoplar la lógica de negocio de los frameworks y detalles de infraestructura, facilitando la integración con múltiples proveedores y permitiendo una evolución independiente del dominio.
 
 ## Decision
-
-Adoptar **Arquitectura Hexagonal (Ports & Adapters)** para aislar el dominio de dependencias externas.
-
-## Structure
-
-```
-domain/        # Modelo + puertos
-application/   # Casos de uso
-infrastructure/ # Adaptadores (REST, DB, providers)
-```
-
-## Pros
-
-* Desacoplamiento del dominio
-* Facilidad de testing
-* Flexibilidad para cambiar integraciones
-
-## Alternative
-
-* Arquitectura en capas: mayor acoplamiento
+Adoptar la **Arquitectura Hexagonal (Ports & Adapters)**. La estructura se divide en:
+- **Domain**: Modelos y puertos (interfaces).
+- **Application**: Casos de uso.
+- **Infrastructure**: Adaptadores (REST controllers, persistence, payment providers).
 
 ## Consequences
-
-El dominio permanece independiente y el sistema es más mantenible y extensible.
+- **Pros**: Alto desacoplamiento, facilidad de testing unitario y flexibilidad para cambiar implementaciones externas.
+- **Cons**: Mayor cantidad de clases y complejidad inicial en el mapeo entre capas.

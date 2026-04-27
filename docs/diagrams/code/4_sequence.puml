@@ -2,30 +2,49 @@
 actor Client
 
 participant "TransactionController" as C
+participant "IdempotencyAspect" as A
+participant "Redis" as R
 participant "TransactionService" as S
-participant "IdempotencyService" as I
 participant "ProviderAdapter" as P
 participant "Payment Provider" as Ext
 
 Client -> C : POST /transactions
-C -> S : createTransaction()
+activate C
 
-S -> I : checkKey()
+C -> A : <<intercept>>
+activate A
 
-alt key exists
-    I --> S : cached response
-    S --> C : return cached
+A -> R : GET idempotency:tx:{id}
+R --> A : value (null/IN_PROGRESS/json)
+
+alt key exists (SUCCESS)
+    A --> C : return cached response
+    C --> Client : 200 OK
+else key exists (IN_PROGRESS)
+    A --> C : return 409 Conflict
+    C --> Client : 409 Conflict
 else new request
-    I --> S : OK
-
+    A -> R : SET NX {id} "IN_PROGRESS"
+    
+    A -> S : proceed()
+    activate S
+    
     S -> P : processPayment()
-    P -> Ext : call provider API
-    Ext --> P : response
-
+    activate P
+    P -> Ext : call API
+    Ext --> P : result
     P --> S : result
-    S -> I : store response
-
-    S --> C : return response
+    deactivate P
+    
+    S --> A : response
+    deactivate S
+    
+    A -> R : SET {id} {json_response}
+    A --> C : return response
+    C --> Client : 201 Created
 end
+
+deactivate A
+deactivate C
 
 @enduml

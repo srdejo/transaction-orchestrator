@@ -3,23 +3,25 @@
 
 Container_Boundary(api, "Transaction Orchestrator") {
 
-Component(controller, "TransactionController", "REST", "Receives requests")
-Component(service, "TransactionService", "Application", "Orchestrates flow")
-Component(strategy, "PaymentStrategy", "Domain", "Selects provider")
-Component(factory, "ProviderFactory", "Application", "Creates provider instances")
-
-Component(providerAdapter, "ProviderAdapter", "Adapter", "Calls external APIs")
-Component(idempotency, "IdempotencyService", "Service", "Handles idempotency")
+    Component(controller, "TransactionController", "REST", "Receives requests")
+    Component(aspect, "IdempotencyAspect", "AOP", "Intercepts requests & handles Redis cache")
+    Component(service, "TransactionService", "Application", "Orchestrates business flow")
+    Component(factory, "PaymentProviderFactory", "Application", "Creates provider instances")
+    Component(adapter, "ProviderAdapter", "Adapter", "Calls external APIs")
 
 }
 
 System_Ext(provider, "Payment Provider")
+System_Ext(redis, "Redis")
+System_Ext(db, "PostgreSQL")
 
+Rel(controller, aspect, "Intercepted by")
+Rel(aspect, redis, "Checks/Stores key")
+Rel(aspect, controller, "Proceeds to")
 Rel(controller, service, "Calls")
-Rel(service, idempotency, "Checks key")
-Rel(service, strategy, "Selects provider")
-Rel(strategy, factory, "Creates provider")
-Rel(factory, providerAdapter, "Returns adapter")
-Rel(providerAdapter, provider, "HTTP")
+Rel(service, db, "Reads/Writes")
+Rel(service, factory, "Requests provider")
+Rel(factory, adapter, "Returns")
+Rel(adapter, provider, "HTTP")
 
 @enduml

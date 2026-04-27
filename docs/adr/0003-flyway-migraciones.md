@@ -1,32 +1,14 @@
-# ADR-0003: Migraciones de Base de Datos con Flyway
+# ADR-0003: Migraciones con Flyway
 
-## Status
-Accepted
+**Date:** 2026-04-27
+**Status:** Accepted
 
 ## Context
-
-Se requiere versionar el schema, garantizar reproducibilidad entre ambientes y evitar cambios manuales.
+Se requiere versionar el esquema de la base de datos para garantizar la reproducibilidad entre ambientes y evitar cambios manuales que comprometan la integridad de los datos.
 
 ## Decision
-
-Usar **Flyway** para gestionar migraciones SQL versionadas junto al código.
-
-## Setup
-
-* Ubicación: `db/migration`
-* Convención: `V{n}__descripcion.sql`
-* Ejecución automática al iniciar la aplicación
-
-## Pros
-
-* Versionado en Git
-* Reproducible
-* Control de cambios (checksum)
-
-## Alternative
-
-* JPA DDL / scripts manuales: descartados por falta de control
+Utilizar **Flyway** para la gestión de migraciones SQL. Las migraciones se almacenan en `src/main/resources/db/migration` y se ejecutan automáticamente al iniciar la aplicación.
 
 ## Consequences
-
-El schema evoluciona de forma controlada y consistente entre ambientes.
+- **Pros**: Control total sobre el esquema, histórico de cambios versionado en Git y prevención de inconsistencias mediante checksums.
+- **Cons**: Requiere disciplina en la creación de scripts y manejo manual del SQL en lugar de depender totalmente del ORM.
