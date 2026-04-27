@@ -82,55 +82,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseWrapper'
-    patch:
-      tags:
-        - Transactions
-      summary: Update transaction status
-      operationId: updateTransaction
-      parameters:
-        - name: transaction_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateTransactionRequest'
-      responses:
-        '200':
-          description: Transaction updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransactionResponseWrapper'
-        '400':
-          description: Invalid payload or business error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponseWrapper'
-        '404':
-          description: Transaction not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponseWrapper'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponseWrapper'
-        '502':
-          description: Provider error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponseWrapper'
+
+
 
 
 components:
@@ -235,24 +188,6 @@ components:
         second_last_name:
           type: string
 
-    UpdateTransactionRequest:
-      type: object
-      required:
-        - transaction_id
-        - status
-      properties:
-        transaction_id:
-          type: string
-          format: uuid
-        provider_transaction_id:
-          type: string
-        status:
-          $ref: '#/components/schemas/TransactionStatus'
-        message:
-          type: string
-        processed_at:
-          type: string
-          format: date-time
 
     # =========================
     # RESPONSES

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.tumipay.transaction_orchestrator.application.mapper.TransactionMapper;
 import com.tumipay.transaction_orchestrator.application.ports.in.CreateTransactionUseCase;
 import com.tumipay.transaction_orchestrator.application.ports.in.GetTransactionUseCase;
-import com.tumipay.transaction_orchestrator.application.ports.in.UpdateTransactionUseCase;
+import com.tumipay.transaction_orchestrator.application.ports.in.GetTransactionUseCase;
 import com.tumipay.transaction_orchestrator.domain.exception.BusinessException;
 import com.tumipay.transaction_orchestrator.domain.exception.ErrorCode;
 import com.tumipay.transaction_orchestrator.domain.model.Customer;
@@ -53,8 +53,6 @@ class TransactionControllerTest {
     private CreateTransactionUseCase createUseCase;
     @MockitoBean
     private GetTransactionUseCase getUseCase;
-    @MockitoBean
-    private UpdateTransactionUseCase updateUseCase;
     @MockitoBean
     private TransactionMapper mapper;
 
@@ -234,57 +232,4 @@ class TransactionControllerTest {
         }
     }
 
-    @Nested
-    @DisplayName("PATCH /transactions/{id} — Update Transaction")
-    class UpdateTransaction {
-
-        @Test
-        @DisplayName("Given valid update to SUCCESS, when PATCH, then returns 200")
-        void givenValidUpdateToSuccess_whenPatch_thenReturns200() throws Exception {
-            when(updateUseCase.execute(any(), any())).thenReturn(sampleTransaction);
-            when(mapper.toCommand(any(com.tumipay.transaction_orchestrator.api.model.UpdateTransactionRequest.class)))
-                .thenReturn(null);
-            when(mapper.toResponse(any())).thenReturn(sampleResponse);
-
-            String body = """
-                {
-                    "transaction_id": "%s",
-                    "status": "SUCCESS",
-                    "provider_transaction_id": "PROV-123",
-                    "message": "Payment approved"
-                }
-                """.formatted(sampleTxId);
-
-            mockMvc.perform(patch("/transactions/{id}", sampleTxId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value("000"));
-        }
-
-        @Test
-        @DisplayName("Given non-existing transaction for update, when PATCH, then returns 404")
-        void givenNonExistingTransaction_whenPatch_thenReturns404() throws Exception {
-            String nonExistingId = UUID.randomUUID().toString();
-            when(mapper.toCommand(any(com.tumipay.transaction_orchestrator.api.model.UpdateTransactionRequest.class)))
-                .thenReturn(null);
-            when(updateUseCase.execute(any(), any()))
-                .thenThrow(new TransactionNotFoundException("Transaction not found with id: " + nonExistingId));
-
-            String body = """
-                {
-                    "transaction_id": "%s",
-                    "status": "SUCCESS",
-                    "provider_transaction_id": "PROV-123",
-                    "message": "ok"
-                }
-                """.formatted(nonExistingId);
-
-            mockMvc.perform(patch("/transactions/{id}", nonExistingId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(body))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("003"));
-        }
-    }
 }

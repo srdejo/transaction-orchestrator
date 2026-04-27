@@ -4,9 +4,7 @@ import com.tumipay.transaction_orchestrator.api.model.CreateTransactionRequest;
 import com.tumipay.transaction_orchestrator.api.model.TransactionData;
 import com.tumipay.transaction_orchestrator.api.model.TransactionResponseWrapper;
 import com.tumipay.transaction_orchestrator.api.model.TransactionStatus;
-import com.tumipay.transaction_orchestrator.api.model.UpdateTransactionRequest;
 import com.tumipay.transaction_orchestrator.application.ports.in.command.CreateTransactionCommand;
-import com.tumipay.transaction_orchestrator.application.ports.in.command.UpdateTransactionCommand;
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,13 +43,6 @@ public class TransactionMapper {
         );
     }
 
-    public UpdateTransactionCommand toCommand(UpdateTransactionRequest request) {
-        return new UpdateTransactionCommand(
-            request.getStatus().name(),
-            request.getProviderTransactionId(),
-            request.getMessage()
-        );
-    }
 
     public TransactionResponseWrapper toResponse(Transaction transaction) {
         TransactionData data = new TransactionData()

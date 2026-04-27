@@ -1,7 +1,6 @@
 package com.tumipay.transaction_orchestrator.application.mapper;
 
 import com.tumipay.transaction_orchestrator.application.ports.in.command.CreateTransactionCommand;
-import com.tumipay.transaction_orchestrator.application.ports.in.command.UpdateTransactionCommand;
 import com.tumipay.transaction_orchestrator.domain.model.Transaction;
 import com.tumipay.transaction_orchestrator.domain.model.TransactionStatus;
 import com.tumipay.transaction_orchestrator.domain.model.valueobject.CountryCode;
@@ -84,21 +83,6 @@ class TransactionMapperTest {
         assertThat(data.getAmount()).isEqualTo(10000);
     }
 
-    @Test
-    @DisplayName("Given UpdateTransactionRequest with FAILED status, when toCommand, then command has FAILED status")
-    void givenUpdateRequest_whenToCommand_thenStatusMappedCorrectly() {
-        com.tumipay.transaction_orchestrator.api.model.UpdateTransactionRequest request =
-            new com.tumipay.transaction_orchestrator.api.model.UpdateTransactionRequest();
-        request.setStatus(com.tumipay.transaction_orchestrator.api.model.TransactionStatus.FAILED);
-        request.setProviderTransactionId("PROV-XYZ");
-        request.setMessage("Payment declined");
-
-        UpdateTransactionCommand cmd = mapper.toCommand(request);
-
-        assertThat(cmd.status()).isEqualTo("FAILED");
-        assertThat(cmd.providerTransactionId()).isEqualTo("PROV-XYZ");
-        assertThat(cmd.message()).isEqualTo("Payment declined");
-    }
 
     @Test
     @DisplayName("Given CreateTransactionRequest, when toCommand, then delegates customer mapping to CustomerMapper")
